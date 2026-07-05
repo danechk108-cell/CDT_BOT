@@ -12,6 +12,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Update
 
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -59,6 +60,16 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# ===== CORS (нужен для Telegram WebApp) =====
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 templates = Jinja2Templates(directory="webapp/templates")
 
 
@@ -135,7 +146,7 @@ def _user_dict(user, prizes_count: int = 0, spin_stats: dict = None) -> dict:
         "balance":       float(user['balance']),
         "prizes_count":  prizes_count,
         "is_blocked":    bool(user['is_blocked']),
-        "created_at":    user['created_at'].strftime("%d.%m.%Y") if user.get('created_at') else None,
+        "created_at":    user['created_at'].strftime("%d.%m.%Y") if user['created_at'] else None,
         "spin_stats":    spin_stats or {"total": 0, "wins": 0, "biggest": 0},
     }
 
@@ -201,7 +212,7 @@ async def api_set_roulette_type(request: Request):
     body          = await request.json()
     roulette_type = body.get('roulette_type', '').strip()
 
-    if roulette_type not in ('day', 'three', 'week'):
+    if roulette_type not in ('day', 'three_days', 'week'):
         return JSONResponse({"success": False, "error": "Некорректный тип рулетки"})
 
     user_id = tg_user['id']
