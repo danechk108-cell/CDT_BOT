@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: tank-blitz-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: DATABASE_URL
+        value: postgresql://cdtdf:RmqUhxcbM6UkQQmDQNLdzg9IeZCD29u0@dpg-d92l6b3tqb8s73e638cg-a.ohio-postgres.render.com/niomero
+    healthCheckPath: /health
