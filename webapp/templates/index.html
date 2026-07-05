@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#020209">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>CODE T — Tank Blitz Roulette</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg:      #020209;
+  --bg2:     #05050f;
+  --bg3:     #080818;
+  --card:    #0a0a1e;
+  --card2:   #0f0f28;
+  --card3:   #141432;
+  --card4:   #1a1a3e;
+  --border:  rgba(80,100,255,0.12);
+  --border2: rgba(80,100,255,0.22);
+  --border3: rgba(255,255,255,0.05);
+  --acc:     #4F6FFF;
+  --acc2:    #7B5CF0;
+  --acc3:    #A5B4FF;
+  --blue:    #3B5BFF;
+  --blue2:   #6B8AFB;
+  --blue3:   #A5B4FF;
+  --indigo:  #4338CA;
+  --violet:  #7C3AED;
+  --cyan:    #06B6D4;
+  --green:   #10B981;
+  --red:     #EF4444;
+  --gold:    #F59E0B;
+  --txt:     #EEF0FF;
+  --txt2:    #5560A0;
+  --txt3:    #30366A;
+  --txt4:    #9BA3D8;
+  --grad-acc:  linear-gradient(135deg,#4F6FFF 0%,#7B5CF0 100%);
+  --grad-blue: linear-gradient(135deg,#3B5BFF 0%,#4F6FFF 100%);
+  --shadow:    0 8px 32px rgba(0,0,0,0.7);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.8);
+  --shadow-acc:0 8px 40px rgba(79,111,255,0.4),0 2px 12px rgba(79,111,255,0.2);
+  --inner-glow:inset 0 1px 0 rgba(79,111,255,0.1),inset 0 -1px 0 rgba(0,0,0,0.3);
+  --nav:72px; --top:60px; --r:18px; --r2:14px; --r3:24px;
+  --ease:cubic-bezier(0.25,0.46,0.45,0.94);
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+  --dur:0.25s; --dur2:0.4s; --dur3:0.6s;
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--txt);height:100dvh;overflow:hidden;user-select:none;-webkit-font-smoothing:antialiased;}
+#app{width:100%;height:100dvh;position:relative;overflow:hidden;}
+
+/* BG */
+.bg-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.bg-canvas::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(79,111,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(79,111,255,0.025) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 0%,transparent 100%);}
+.bg-mesh{position:absolute;inset:0;background:radial-gradient(ellipse 50% 40% at 0% 0%,rgba(79,111,255,0.08) 0%,transparent 60%),radial-gradient(ellipse 40% 50% at 100% 100%,rgba(123,92,240,0.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 50% 50%,rgba(59,91,255,0.03) 0%,transparent 70%);animation:meshShift 15s ease infinite alternate;}
+@keyframes meshShift{0%{background:radial-gradient(ellipse 50% 40% at 0% 0%,rgba(79,111,255,0.08) 0%,transparent 60%),radial-gradient(ellipse 40% 50% at 100% 100%,rgba(123,92,240,0.06) 0%,transparent 60%);}100%{background:radial-gradient(ellipse 60% 50% at 20% 30%,rgba(79,111,255,0.1) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 70%,rgba(123,92,240,0.08) 0%,transparent 60%);}}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(100px);animation:orbFloat 10s ease infinite;will-change:transform;}
+.bg-orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(79,111,255,0.7) 0%,transparent 70%);top:-200px;left:-150px;opacity:0.07;}
+.bg-orb-2{width:500px;height:500px;background:radial-gradient(circle,rgba(123,92,240,0.7) 0%,transparent 70%);bottom:-150px;right:-100px;animation-delay:-4s;opacity:0.06;}
+.bg-orb-3{width:350px;height:350px;background:radial-gradient(circle,rgba(6,182,212,0.6) 0%,transparent 70%);top:35%;left:45%;animation-delay:-8s;opacity:0.04;}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}25%{transform:translate(40px,-50px) scale(1.15);}50%{transform:translate(-30px,30px) scale(0.9);}75%{transform:translate(20px,50px) scale(1.08);}}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse 100% 100% at 50% 50%,#080820 0%,#020209 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity var(--dur3) var(--ease),transform var(--dur3) var(--ease);overflow:hidden;}
+#splash::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(79,111,255,0.1) 0%,transparent 70%);animation:splashBg 3s ease infinite alternate;}
+@keyframes splashBg{from{transform:scale(0.8) translate(-50px,-50px);}to{transform:scale(1.2) translate(50px,50px);}}
+#splash.hide{opacity:0;transform:scale(1.08) translateY(-20px);pointer-events:none;filter:blur(10px);}
+.splash-logo{position:relative;width:140px;height:140px;margin-bottom:32px;z-index:1;}
+.splash-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;background:linear-gradient(var(--bg),var(--bg)) padding-box,conic-gradient(from 0deg,var(--acc),var(--acc2),var(--cyan),var(--acc)) border-box;animation:ringRotate 2.5s linear infinite;}
+.splash-ring-2{position:absolute;inset:10px;border-radius:50%;border:1.5px solid transparent;background:linear-gradient(var(--bg),var(--bg)) padding-box,conic-gradient(from 180deg,var(--acc2),var(--cyan),var(--acc)) border-box;animation:ringRotate 4s linear infinite reverse;opacity:0.7;}
+.splash-ring-3{position:absolute;inset:-12px;border-radius:50%;border:1px solid transparent;background:transparent padding-box,conic-gradient(from 90deg,transparent 70%,rgba(79,111,255,0.5) 100%) border-box;animation:ringRotate 8s linear infinite;opacity:0.4;}
+@keyframes ringRotate{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.splash-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.splash-icon-bg{position:absolute;width:82px;height:82px;border-radius:50%;background:linear-gradient(135deg,rgba(79,111,255,0.3),rgba(123,92,240,0.2));filter:blur(16px);animation:iconBgPulse 2s ease-in-out infinite alternate;}
+@keyframes iconBgPulse{from{transform:scale(0.8);opacity:0.5;}to{transform:scale(1.2);opacity:1;}}
+.splash-icon svg{width:56px;height:56px;position:relative;z-index:1;animation:splashIconPulse 2s ease-in-out infinite alternate;}
+@keyframes splashIconPulse{from{transform:scale(0.88) rotate(-5deg);filter:drop-shadow(0 0 12px rgba(79,111,255,0.5));}to{transform:scale(1.08) rotate(5deg);filter:drop-shadow(0 0 30px rgba(79,111,255,1));}}
+.splash-title{font-size:40px;font-weight:900;letter-spacing:8px;background:linear-gradient(135deg,var(--blue3) 0%,var(--acc) 40%,var(--acc2) 70%,var(--violet) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;z-index:1;position:relative;animation:titleReveal 0.8s var(--ease-out) 0.3s both;}
+@keyframes titleReveal{from{opacity:0;transform:translateY(20px) scale(0.9);}to{opacity:1;transform:translateY(0) scale(1);}}
+.splash-sub{font-size:11px;color:var(--txt3);letter-spacing:4px;text-transform:uppercase;margin-bottom:56px;z-index:1;animation:fadeInUp 0.6s var(--ease) 0.6s both;}
+.splash-loader{width:220px;height:2px;background:rgba(79,111,255,0.08);border-radius:10px;position:relative;z-index:1;animation:fadeInUp 0.6s var(--ease) 0.8s both;}
+.splash-loader-bar{height:100%;background:linear-gradient(90deg,var(--violet),var(--acc),var(--cyan));background-size:300% 100%;border-radius:10px;animation:splashLoad 2.4s var(--ease) forwards,shimmer 1.5s linear infinite;}
+.splash-loader-bar::after{content:'';position:absolute;right:0;top:50%;transform:translate(50%,-50%);width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px var(--acc),0 0 24px rgba(79,111,255,0.5);}
+@keyframes splashLoad{0%{width:0%;}30%{width:35%;}60%{width:65%;}80%{width:80%;}100%{width:100%;}}
+@keyframes shimmer{0%{background-position:200% center;}100%{background-position:-200% center;}}
+.splash-dots{display:flex;gap:8px;margin-top:24px;z-index:1;}
+.splash-dot{width:5px;height:5px;border-radius:50%;animation:dotBounce 1s ease-in-out infinite alternate;}
+.splash-dot:nth-child(1){background:var(--acc2);animation-delay:0s;}
+.splash-dot:nth-child(2){background:var(--acc);animation-delay:0.2s;}
+.splash-dot:nth-child(3){background:var(--cyan);animation-delay:0.4s;}
+@keyframes dotBounce{from{transform:translateY(0) scale(0.8);opacity:0.3;}to{transform:translateY(-10px) scale(1.2);opacity:1;}}
+.splash-version{position:absolute;bottom:32px;font-size:10px;color:var(--txt3);letter-spacing:2px;z-index:1;}
+
+/* SCREENS */
+.screen{position:absolute;inset:0;z-index:1;display:none;flex-direction:column;}
+.screen.active{display:flex;animation:screenReveal 0.5s var(--ease-out) both;}
+@keyframes screenReveal{from{opacity:0;filter:blur(8px);}to{opacity:1;filter:blur(0);}}
+
+/* ════════════════════════════════════════════
+   SETUP SCREEN — выбор типа рулетки
+════════════════════════════════════════════ */
+.setup-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:24px 20px 40px;overflow-y:auto;}
+.setup-header{text-align:center;margin-bottom:28px;animation:fadeInDown var(--dur3) var(--ease-out);}
+.setup-logo-wrap{width:80px;height:80px;position:relative;margin:0 auto 16px;}
+.setup-logo-ring{position:absolute;inset:0;border-radius:50%;padding:2px;background:conic-gradient(from 0deg,var(--acc),var(--acc2),var(--cyan),var(--acc));animation:ringRotate 5s linear infinite;}
+.setup-logo-ring::before{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--bg);}
+.setup-logo-inner{position:absolute;inset:2px;border-radius:50%;background:linear-gradient(145deg,var(--card2),var(--card));display:flex;align-items:center;justify-content:center;}
+.setup-logo-inner svg{width:36px;height:36px;}
+.setup-header h1{font-size:26px;font-weight:900;letter-spacing:5px;background:linear-gradient(135deg,var(--blue3),var(--acc),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+.setup-header p{color:var(--txt3);font-size:11px;letter-spacing:2px;text-transform:uppercase;}
+
+.setup-step{width:100%;max-width:420px;animation:fadeInUp var(--dur3) var(--ease-out) 0.1s both;}
+.setup-step-title{font-size:20px;font-weight:800;margin-bottom:6px;background:linear-gradient(135deg,var(--txt),var(--txt4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.setup-step-sub{color:var(--txt2);font-size:13px;margin-bottom:20px;line-height:1.6;}
+
+/* GID field */
+.field{position:relative;margin-bottom:14px;}
+.field-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:18px;height:18px;opacity:0.4;transition:opacity var(--dur) var(--ease);pointer-events:none;}
+.field:focus-within .field-icon{opacity:0.9;filter:drop-shadow(0 0 6px rgba(79,111,255,0.5));}
+.field input{width:100%;background:rgba(79,111,255,0.05);border:1.5px solid rgba(79,111,255,0.12);border-radius:var(--r2);padding:14px 18px 14px 46px;color:var(--txt);font-size:15px;font-family:inherit;font-weight:500;outline:none;transition:all var(--dur) var(--ease);}
+.field input:focus{border-color:var(--acc);background:rgba(79,111,255,0.08);box-shadow:0 0 0 4px rgba(79,111,255,0.1);}
+.field-line{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--grad-acc);border-radius:1px;transition:width 0.3s var(--ease-spring);pointer-events:none;}
+.field:focus-within .field-line{width:calc(100% - 16px);}
+input::placeholder{color:var(--txt3);font-weight:400;}
+
+/* Roulette type picker */
+.rtype-picker{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+.rtype-pick-card{
+  display:flex;align-items:center;gap:14px;
+  background:rgba(79,111,255,0.05);border:2px solid rgba(79,111,255,0.1);
+  border-radius:18px;padding:16px;cursor:pointer;
+  transition:all var(--dur) var(--ease);position:relative;overflow:hidden;
+}
+.rtype-pick-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(79,111,255,0.15),transparent);}
+.rtype-pick-card:hover{border-color:rgba(79,111,255,0.28);background:rgba(79,111,255,0.08);transform:translateY(-1px);}
+.rtype-pick-card.selected{border-color:var(--acc);background:rgba(79,111,255,0.12);box-shadow:0 4px 24px rgba(79,111,255,0.25),var(--inner-glow);}
+.rtype-pick-card.selected::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad-acc);}
+.rtype-pick-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,0.06);}
+.rtype-pick-icon.day{background:rgba(79,111,255,0.15);}
+.rtype-pick-icon.three{background:rgba(123,92,240,0.15);}
+.rtype-pick-icon.week{background:rgba(6,182,212,0.15);}
+.rtype-pick-icon svg{width:24px;height:24px;}
+.rtype-pick-info{flex:1;}
+.rtype-pick-name{font-size:15px;font-weight:800;margin-bottom:3px;}
+.rtype-pick-desc{font-size:12px;color:var(--txt2);line-height:1.5;}
+.rtype-pick-badge{font-size:10px;font-weight:800;padding:5px 12px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+.rtype-pick-badge.free{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:#34D399;}
+.rtype-pick-radio{width:20px;height:20px;border-radius:50%;border:2px solid rgba(79,111,255,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--dur) var(--ease);}
+.rtype-pick-card.selected .rtype-pick-radio{border-color:var(--acc);background:var(--acc);}
+.rtype-pick-radio-dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:0;transform:scale(0);transition:all var(--dur) var(--ease-spring);}
+.rtype-pick-card.selected .rtype-pick-radio-dot{opacity:1;transform:scale(1);}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px 22px;border:none;border-radius:var(--r2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all var(--dur) var(--ease);margin-bottom:10px;letter-spacing:0.5px;position:relative;overflow:hidden;text-transform:uppercase;}
+.btn:active{transform:scale(0.96);}
+.btn svg{width:16px;height:16px;flex-shrink:0;}
+.btn-primary{background:var(--grad-acc);color:#fff;box-shadow:0 4px 20px rgba(79,111,255,0.4),var(--inner-glow);}
+.btn-primary:hover{box-shadow:0 8px 36px rgba(79,111,255,0.6);transform:translateY(-2px);}
+.btn-primary:disabled{background:linear-gradient(135deg,var(--card2),var(--card3));color:var(--txt3);box-shadow:none;cursor:not-allowed;transform:none;}
+.btn-ghost{background:rgba(79,111,255,0.05);border:1.5px solid rgba(79,111,255,0.12);color:var(--txt2);}
+.btn-ghost:hover{border-color:rgba(79,111,255,0.35);color:var(--blue3);}
+
+/* TOP BAR */
+.topbar{height:var(--top);background:rgba(2,2,9,0.9);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border-bottom:1px solid rgba(79,111,255,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;z-index:100;position:relative;}
+.topbar::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,rgba(79,111,255,0.3),rgba(123,92,240,0.2),transparent);}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-logo-icon{width:30px;height:30px;filter:drop-shadow(0 0 8px rgba(79,111,255,0.4));animation:logoFloat 3s ease-in-out infinite alternate;}
+@keyframes logoFloat{from{filter:drop-shadow(0 0 6px rgba(79,111,255,0.3));}to{filter:drop-shadow(0 0 14px rgba(79,111,255,0.6));transform:translateY(-2px);}}
+.topbar-title{font-size:17px;font-weight:900;letter-spacing:5px;background:linear-gradient(135deg,var(--blue3),var(--acc),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.topbar-bal{display:flex;align-items:center;gap:6px;background:rgba(79,111,255,0.07);border:1px solid rgba(79,111,255,0.18);border-radius:30px;padding:7px 14px;font-size:13px;font-weight:800;color:var(--acc3);}
+.topbar-bal svg{width:14px;height:14px;}
+.topbar-bal.bump{animation:balBump 0.5s var(--ease-spring);}
+@keyframes balBump{0%{transform:scale(1);}30%{transform:scale(1.2);box-shadow:0 0 24px rgba(79,111,255,0.5);}60%{transform:scale(0.95);}100%{transform:scale(1);}}
+
+/* PAGES */
+.pages{flex:1;position:relative;overflow:hidden;}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 14px calc(var(--nav) + 20px);display:none;flex-direction:column;scroll-behavior:smooth;overscroll-behavior:contain;}
+.page.active{display:flex;}
+.page::-webkit-scrollbar{width:2px;}
+.page::-webkit-scrollbar-thumb{background:rgba(79,111,255,0.2);border-radius:1px;}
+.page-enter{animation:pageEnter 0.4s var(--ease-spring) both;}
+@keyframes pageEnter{from{opacity:0;transform:translateY(20px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.ptitle{font-size:20px;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--txt),var(--txt4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.ptitle svg{width:22px;height:22px;-webkit-text-fill-color:initial;flex-shrink:0;}
+
+/* CARDS */
+.card{background:linear-gradient(145deg,rgba(79,111,255,0.05) 0%,rgba(123,92,240,0.02) 100%);border:1px solid rgba(79,111,255,0.1);border-radius:var(--r);padding:16px;margin-bottom:10px;transition:all var(--dur) var(--ease);position:relative;overflow:hidden;}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(79,111,255,0.15),transparent);}
+.card:hover{border-color:rgba(79,111,255,0.2);transform:translateY(-1px);box-shadow:var(--shadow);}
+.card-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:var(--blue3);margin-bottom:14px;text-transform:uppercase;letter-spacing:1.5px;}
+.card-title svg{width:14px;height:14px;opacity:0.8;}
+
+/* ════════════════════════════════════════════
+   ROULETTE PAGE — НОВЫЙ ДИЗАЙН
+════════════════════════════════════════════ */
+.wheel-card{background:linear-gradient(160deg,rgba(79,111,255,0.06) 0%,rgba(123,92,240,0.03) 50%,rgba(6,182,212,0.02) 100%);border:1px solid rgba(79,111,255,0.14);border-radius:var(--r3);padding:22px 14px 18px;margin-bottom:10px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden;box-shadow:var(--shadow),inset 0 1px 0 rgba(79,111,255,0.1);}
+
+/* ═══ SLOT MACHINE ═══ */
+.slot-machine{width:100%;margin-bottom:16px;position:relative;z-index:1;}
+.slot-header{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;}
+.slot-title-text{font-size:11px;font-weight:800;color:var(--txt3);letter-spacing:2px;text-transform:uppercase;}
+.slot-window{position:relative;background:rgba(4,4,20,0.95);border:2px solid rgba(79,111,255,0.25);border-radius:20px;overflow:hidden;padding:0;box-shadow:0 0 40px rgba(79,111,255,0.08),inset 0 2px 8px rgba(0,0,0,0.8),inset 0 0 30px rgba(0,0,0,0.5);}
+.slot-window::before{content:'';position:absolute;top:0;left:0;right:0;height:36%;background:linear-gradient(to bottom,rgba(0,0,0,0.92),transparent);z-index:5;pointer-events:none;}
+.slot-window::after{content:'';position:absolute;bottom:0;left:0;right:0;height:36%;background:linear-gradient(to top,rgba(0,0,0,0.92),transparent);z-index:5;pointer-events:none;}
+.slot-win-line{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);height:54px;z-index:6;pointer-events:none;}
+.slot-win-line::before{content:'';position:absolute;inset:0;border-top:2px solid rgba(79,111,255,0.5);border-bottom:2px solid rgba(79,111,255,0.5);}
+.slot-win-line::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(79,111,255,0.04);}
+.slot-reels{display:flex;gap:2px;padding:2px;}
+.slot-reel-wrap{flex:1;overflow:hidden;height:162px;position:relative;}
+.slot-reel{display:flex;flex-direction:column;transition:transform 0.1s linear;will-change:transform;}
+.slot-item{height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;padding:4px 2px;gap:2px;}
+.slot-item-icon{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0;flex-shrink:0;}
+.slot-item-icon svg{width:15px;height:15px;}
+.slot-item-label{font-size:7px;font-weight:800;color:rgba(255,255,255,0.75);text-align:center;line-height:1.1;letter-spacing:0.3px;white-space:nowrap;}
+/* Highlight winning item */
+.slot-item.winner{background:rgba(79,111,255,0.15);border-radius:12px;}
+.slot-item.winner .slot-item-label{color:#A5B4FF;}
+/* Decorative side lights */
+.slot-side-light{position:absolute;top:50%;width:6px;height:40px;transform:translateY(-50%);border-radius:3px;z-index:7;}
+.slot-side-light.left{left:0;background:linear-gradient(to right,rgba(79,111,255,0.5),transparent);}
+.slot-side-light.right{right:0;background:linear-gradient(to left,rgba(79,111,255,0.5),transparent);}
+/* Win flash */
+@keyframes winFlash{0%,100%{opacity:0;}40%,60%{opacity:1;}}
+.slot-win-flash{position:absolute;inset:0;background:rgba(79,111,255,0.18);z-index:8;border-radius:18px;animation:winFlash 0.6s ease 3;pointer-events:none;display:none;}
+.slot-win-flash.active{display:block;}
+/* Multi-spin selector */
+.multi-spin-row{display:flex;align-items:center;gap:6px;width:100%;margin-bottom:10px;}
+.multi-spin-label{font-size:10px;color:var(--txt3);font-weight:700;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
+.multi-spin-btns{display:flex;gap:5px;flex:1;}
+.ms-btn{flex:1;padding:7px 4px;border-radius:10px;border:1.5px solid rgba(79,111,255,0.18);background:rgba(79,111,255,0.06);color:var(--txt2);font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;transition:all 0.2s;text-align:center;}
+.ms-btn:hover{border-color:rgba(79,111,255,0.4);background:rgba(79,111,255,0.14);color:var(--txt);}
+.ms-btn.active{border-color:var(--acc);background:rgba(79,111,255,0.22);color:#A5B4FF;box-shadow:0 0 12px rgba(79,111,255,0.25);}
+.ms-btn.paid-active{border-color:#F59E0B;background:rgba(245,158,11,0.15);color:#FCD34D;box-shadow:0 0 12px rgba(245,158,11,0.2);}
+/* Old wheel classes kept for compatibility but hidden */
+.wheel-outer{display:none;}
+
+/* ── Roulette buttons row ── */
+.roulette-btns{width:100%;display:flex;flex-direction:column;gap:8px;margin-bottom:2px;}
+
+.roulette-btn{
+  width:100%;display:flex;align-items:center;gap:12px;
+  padding:14px 18px;border-radius:16px;border:1.5px solid;
+  font-family:inherit;cursor:pointer;transition:all var(--dur) var(--ease);
+  position:relative;overflow:hidden;text-align:left;
+}
+
+/* Available state */
+.roulette-btn.available{
+  background:rgba(79,111,255,0.08);
+  border-color:rgba(79,111,255,0.22);
+  color:var(--txt);
+}
+.roulette-btn.available:hover{
+  background:rgba(79,111,255,0.14);
+  border-color:rgba(79,111,255,0.4);
+  transform:translateY(-1px);
+  box-shadow:0 6px 24px rgba(79,111,255,0.2);
+}
+.roulette-btn.available::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(79,111,255,0.3),transparent);
+}
+
+/* Locked / cooldown state */
+.roulette-btn.locked{
+  background:rgba(20,20,50,0.6);
+  border-color:rgba(79,111,255,0.08);
+  color:var(--txt3);
+  cursor:not-allowed;
+  opacity:0.7;
+}
+
+/* Active/selected highlight */
+.roulette-btn.active-spin{
+  border-color:var(--acc);
+  box-shadow:0 0 0 3px rgba(79,111,255,0.15),0 6px 28px rgba(79,111,255,0.3);
+}
+
+.roulette-btn-icon{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all var(--dur) var(--ease);
+}
+.roulette-btn.available .roulette-btn-icon{background:rgba(79,111,255,0.12);border:1px solid rgba(79,111,255,0.2);}
+.roulette-btn.locked .roulette-btn-icon{background:rgba(30,30,60,0.5);border:1px solid rgba(79,111,255,0.08);}
+.roulette-btn-icon svg{width:20px;height:20px;}
+
+.roulette-btn-info{flex:1;min-width:0;}
+.roulette-btn-name{font-size:14px;font-weight:700;margin-bottom:2px;transition:color var(--dur) var(--ease);}
+.roulette-btn.locked .roulette-btn-name{color:var(--txt3);}
+.roulette-btn-sub{font-size:11px;color:var(--txt2);transition:color var(--dur) var(--ease);}
+.roulette-btn.locked .roulette-btn-sub{color:var(--txt3);}
+
+.roulette-btn-right{flex-shrink:0;display:flex;align-items:center;gap:6px;}
+.roulette-btn-tag{font-size:10px;font-weight:800;padding:4px 10px;border-radius:8px;white-space:nowrap;}
+.roulette-btn.available .roulette-btn-tag{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2);color:#34D399;}
+.roulette-btn.locked .roulette-btn-tag{background:rgba(30,30,60,0.5);border:1px solid rgba(79,111,255,0.08);color:var(--txt3);}
+
+/* Cooldown timer display */
+.cooldown-display{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(20,20,50,0.8);border:1px solid rgba(79,111,255,0.1);
+  border-radius:20px;padding:5px 10px;
+  font-size:11px;font-weight:700;color:var(--txt3);
+}
+.cooldown-display svg{width:12px;height:12px;flex-shrink:0;}
+
+/* Lock icon */
+.lock-icon{color:var(--txt3);opacity:0.5;}
+.lock-icon svg{width:16px;height:16px;}
+
+/* SPIN BUTTON */
+.spin-btn-wrap{padding:4px 0 8px;width:100%;}
+#spin-btn{width:100%;padding:18px;border:none;border-radius:20px;font-size:16px;font-weight:900;font-family:inherit;letter-spacing:2px;text-transform:uppercase;background:linear-gradient(135deg,var(--blue3) 0%,var(--acc) 30%,var(--acc2) 70%,var(--violet) 100%);color:#fff;cursor:pointer;position:relative;overflow:hidden;transition:all 0.3s var(--ease-spring);box-shadow:0 8px 40px rgba(79,111,255,0.55),0 2px 12px rgba(123,92,240,0.3),inset 0 2px 0 rgba(255,255,255,0.15),inset 0 -2px 0 rgba(0,0,0,0.2);}
+#spin-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.18) 50%,transparent 65%);transform:translateX(-150%);transition:transform 0s;}
+#spin-btn:not(:disabled):hover::before{transform:translateX(150%);transition:transform 0.6s var(--ease);}
+#spin-btn::after{content:'';position:absolute;inset:-4px;border-radius:24px;border:2px solid rgba(79,111,255,0.3);animation:spinBtnPulse 2s ease-in-out infinite;}
+@keyframes spinBtnPulse{0%,100%{transform:scale(1);opacity:0.5;}50%{transform:scale(1.03);opacity:0;}}
+#spin-btn:not(:disabled):hover{box-shadow:0 14px 60px rgba(79,111,255,0.75),0 4px 20px rgba(123,92,240,0.4);transform:translateY(-3px) scale(1.01);}
+#spin-btn:not(:disabled):active{transform:scale(0.97) translateY(1px);}
+#spin-btn:disabled{background:linear-gradient(135deg,var(--card2),var(--card3));color:var(--txt3);box-shadow:none;cursor:not-allowed;letter-spacing:1px;}
+#spin-btn:disabled::before,#spin-btn:disabled::after{display:none;}
+
+/* STATUS */
+.rstatus{text-align:center;color:var(--txt2);font-size:11px;min-height:20px;margin:6px 0 2px;display:flex;align-items:center;justify-content:center;gap:5px;font-weight:500;}
+.rstatus svg{width:13px;height:13px;flex-shrink:0;}
+
+/* PRIZES GRID */
+.prizes-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.prize-pill{display:flex;align-items:center;gap:8px;background:rgba(79,111,255,0.04);border:1px solid rgba(79,111,255,0.08);border-radius:12px;padding:10px 12px;transition:all var(--dur) var(--ease);animation:fadeInScale 0.4s var(--ease-spring) both;}
+.prize-pill:hover{border-color:rgba(79,111,255,0.2);transform:translateY(-1px);}
+.prize-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.prize-pct{font-size:9px;color:var(--txt3);margin-left:auto;font-weight:600;}
+.prize-name{font-size:11px;font-weight:700;}
+@keyframes fadeInScale{from{opacity:0;transform:scale(0.85) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+/* PROFILE */
+.prof-hero{background:linear-gradient(145deg,rgba(79,111,255,0.1) 0%,rgba(123,92,240,0.08) 60%,rgba(6,182,212,0.04) 100%);border:1px solid rgba(79,111,255,0.18);border-radius:var(--r3);padding:28px 20px 24px;margin-bottom:12px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden;}
+.prof-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(79,111,255,0.5),rgba(123,92,240,0.3),transparent);}
+.prof-hero-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% -20%,rgba(79,111,255,0.15) 0%,transparent 60%);}
+.prof-av-wrap{position:relative;margin-bottom:14px;z-index:1;}
+.prof-av{width:82px;height:82px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2),var(--violet));display:flex;align-items:center;justify-content:center;box-shadow:0 10px 36px rgba(79,111,255,0.5);overflow:hidden;flex-shrink:0;}
+.prof-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.prof-av-letter{font-size:32px;font-weight:900;color:#fff;line-height:1;}
+.prof-av-ring{position:absolute;inset:-5px;border-radius:50%;border:2px solid transparent;background:linear-gradient(var(--bg2),var(--bg2)) padding-box,conic-gradient(from 0deg,var(--acc),var(--acc2),var(--cyan),var(--acc)) border-box;animation:ringRotate 5s linear infinite;}
+.prof-av-online{position:absolute;bottom:3px;right:3px;width:14px;height:14px;border-radius:50%;background:var(--green);border:2.5px solid var(--bg2);box-shadow:0 0 8px rgba(16,185,129,0.7);}
+.prof-badge{background:var(--grad-acc);color:#fff;font-size:9px;font-weight:900;border-radius:20px;padding:4px 12px;letter-spacing:2px;margin-bottom:10px;z-index:1;text-transform:uppercase;}
+.prof-gid{font-size:26px;font-weight:900;background:linear-gradient(135deg,var(--blue3),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;margin-bottom:4px;z-index:1;}
+.prof-name{font-size:17px;font-weight:700;margin-bottom:3px;z-index:1;}
+.prof-un{color:var(--txt2);font-size:12px;z-index:1;}
+.prof-since{display:flex;align-items:center;gap:5px;margin-top:8px;z-index:1;background:rgba(79,111,255,0.07);border:1px solid rgba(79,111,255,0.12);border-radius:20px;padding:4px 12px;}
+.prof-since svg{width:12px;height:12px;opacity:0.5;flex-shrink:0;}
+.prof-since span{font-size:10px;color:var(--txt3);font-weight:600;letter-spacing:0.5px;}
+
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.stats-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.scard{background:linear-gradient(145deg,rgba(79,111,255,0.06),rgba(123,92,240,0.02));border:1px solid rgba(79,111,255,0.1);border-radius:var(--r);padding:16px 14px;text-align:center;position:relative;overflow:hidden;transition:all var(--dur) var(--ease);}
+.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--acc),var(--acc2),var(--cyan));background-size:200% 100%;animation:borderFlow 3s linear infinite;}
+@keyframes borderFlow{0%{background-position:0% center;}100%{background-position:200% center;}}
+.scard:hover{transform:translateY(-2px);box-shadow:var(--shadow-acc);}
+.scard-icon{width:34px;height:34px;border-radius:10px;background:rgba(79,111,255,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;border:1px solid rgba(79,111,255,0.15);}
+.scard-icon svg{width:17px;height:17px;}
+.sv{font-size:22px;font-weight:900;background:linear-gradient(135deg,var(--blue3),var(--acc));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;margin-bottom:3px;display:block;}
+.sv.green{background:linear-gradient(135deg,#34D399,#10B981);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;}
+.sv.gold{background:linear-gradient(135deg,#FCD34D,#F59E0B);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;}
+.sl{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;}
+
+.prizes-section{background:linear-gradient(145deg,rgba(79,111,255,0.05) 0%,rgba(123,92,240,0.02) 100%);border:1px solid rgba(79,111,255,0.1);border-radius:var(--r);padding:16px;margin-bottom:10px;position:relative;overflow:hidden;}
+.prizes-section::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(79,111,255,0.15),transparent);}
+.prizes-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.prizes-header-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:var(--blue3);text-transform:uppercase;letter-spacing:1.5px;}
+.prizes-header-title svg{width:14px;height:14px;opacity:0.8;}
+.prizes-count-badge{background:rgba(79,111,255,0.12);border:1px solid rgba(79,111,255,0.2);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--acc3);}
+
+.pitem{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:rgba(79,111,255,0.04);border:1px solid rgba(79,111,255,0.07);margin-bottom:7px;transition:all var(--dur) var(--ease);animation:slideInUp 0.3s var(--ease-out) both;}
+.pitem:last-child{margin-bottom:0;}
+.pitem:hover{background:rgba(79,111,255,0.08);border-color:rgba(79,111,255,0.18);transform:translateX(3px);}
+@keyframes slideInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.pi-icon-wrap{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,0.06);transition:all var(--dur) var(--ease);}
+.pi-icon-wrap.balance{background:rgba(79,111,255,0.12);}
+.pi-icon-wrap.account{background:rgba(16,185,129,0.12);}
+.pi-icon-wrap.gold{background:rgba(245,158,11,0.12);}
+.pi-icon-wrap.nothing{background:rgba(40,40,80,0.3);}
+.pi-icon-wrap svg{width:22px;height:22px;}
+.pitem:hover .pi-icon-wrap{transform:scale(1.08) rotate(-3deg);}
+.pi-info{flex:1;min-width:0;}
+.pi-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.pi-meta{display:flex;align-items:center;gap:6px;}
+.pi-date{color:var(--txt3);font-size:10px;font-weight:500;}
+.pi-type-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.pi-type-badge.balance{background:rgba(79,111,255,0.12);color:var(--acc3);}
+.pi-type-badge.account{background:rgba(16,185,129,0.12);color:#34D399;}
+.pi-type-badge.gold{background:rgba(245,158,11,0.12);color:#FCD34D;}
+.pi-type-badge.nothing{background:rgba(80,80,100,0.12);color:var(--txt3);}
+.pi-action{flex-shrink:0;}
+.pi-action-row{display:flex;gap:5px;align-items:center;}
+.pi-tr{display:flex;align-items:center;gap:4px;background:var(--grad-acc);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;transition:all var(--dur) var(--ease-spring);text-transform:uppercase;letter-spacing:0.5px;box-shadow:0 2px 10px rgba(79,111,255,0.3);}
+.pi-tr:hover{box-shadow:var(--shadow-acc);transform:scale(1.05);}
+.pi-tr svg{width:12px;height:12px;}
+.pi-claim-btn{background:linear-gradient(135deg,#10B981,#059669)!important;box-shadow:0 2px 10px rgba(16,185,129,0.4)!important;}
+.pi-claim-btn:hover{box-shadow:0 4px 18px rgba(16,185,129,0.6)!important;}
+.pi-tr-sm{padding:8px 9px!important;min-width:auto;}
+.pi-status-badge{font-size:9px;color:var(--txt3);background:rgba(79,111,255,0.06);border-radius:8px;padding:5px 9px;border:1px solid rgba(79,111,255,0.1);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap;}
+.pi-status-badge.received{color:var(--green);background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.15);}
+
+.empty-prizes{text-align:center;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.empty-prizes-icon{width:60px;height:60px;border-radius:50%;background:rgba(79,111,255,0.08);border:1px solid rgba(79,111,255,0.12);display:flex;align-items:center;justify-content:center;}
+.empty-prizes-icon svg{width:26px;height:26px;opacity:0.4;}
+.empty-prizes-title{font-size:15px;font-weight:700;color:var(--txt4);}
+.empty-prizes-sub{font-size:12px;color:var(--txt3);line-height:1.6;}
+
+.settings-card{background:linear-gradient(145deg,rgba(79,111,255,0.05) 0%,rgba(123,92,240,0.02) 100%);border:1px solid rgba(79,111,255,0.1);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.settings-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(79,111,255,0.07);cursor:pointer;transition:all var(--dur) var(--ease);}
+.settings-item:last-child{border-bottom:none;}
+.settings-item:hover{background:rgba(79,111,255,0.06);}
+.settings-item-icon{width:36px;height:36px;border-radius:10px;background:rgba(79,111,255,0.1);border:1px solid rgba(79,111,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.settings-item-icon svg{width:17px;height:17px;}
+.settings-item-text{flex:1;}
+.settings-item-label{font-size:14px;font-weight:600;margin-bottom:2px;}
+.settings-item-desc{font-size:11px;color:var(--txt2);}
+.settings-item-arrow svg{width:16px;height:16px;color:var(--txt3);}
+
+/* LEADERS */
+.litem{display:flex;align-items:center;background:linear-gradient(145deg,rgba(79,111,255,0.05),rgba(123,92,240,0.02));border:1px solid rgba(79,111,255,0.08);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;gap:10px;transition:all var(--dur) var(--ease);animation:slideInLeft 0.4s var(--ease-out) both;position:relative;overflow:hidden;}
+.litem:hover{transform:translateX(3px);border-color:rgba(79,111,255,0.2);}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:translateX(0);}}
+.litem:nth-child(1){border-color:rgba(245,158,11,0.3);background:linear-gradient(145deg,rgba(245,158,11,0.07),rgba(79,111,255,0.03));}
+.litem:nth-child(1)::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.5),transparent);}
+.litem:nth-child(2){border-color:rgba(148,163,184,0.25);}
+.litem:nth-child(3){border-color:rgba(180,120,60,0.25);}
+.lr{font-size:20px;min-width:36px;text-align:center;}
+.li-av{width:42px;height:42px;border-radius:50%;background:var(--grad-acc);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;border:2px solid rgba(79,111,255,0.2);}
+.li{flex:1;min-width:0;}
+.li-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.li-un{color:var(--txt3);font-size:10px;margin-top:2px;}
+.lb{font-weight:900;background:linear-gradient(135deg,var(--blue3),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:15px;white-space:nowrap;}
+
+/* INFO */
+.info-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(79,111,255,0.06);font-size:13px;line-height:1.7;transition:all var(--dur) var(--ease);}
+.info-row:last-child{border-bottom:none;}
+.info-row:hover{transform:translateX(2px);}
+.info-icon{width:34px;height:34px;border-radius:10px;background:rgba(79,111,255,0.08);border:1px solid rgba(79,111,255,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-icon svg{width:17px;height:17px;}
+.info-text b{color:var(--txt);font-weight:700;}
+.info-text{flex:1;color:var(--txt2);}
+.clink{color:var(--acc3);text-decoration:none;font-weight:700;}
+.clink:hover{color:var(--blue3);}
+.roulette-type-card{display:flex;align-items:center;gap:12px;background:rgba(79,111,255,0.04);border:1px solid rgba(79,111,255,0.08);border-radius:14px;padding:12px 14px;margin-bottom:7px;transition:all var(--dur) var(--ease);}
+.roulette-type-card:hover{border-color:rgba(79,111,255,0.2);transform:translateY(-1px);}
+.rtc-icon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rtc-icon.day{background:rgba(79,111,255,0.12);}
+.rtc-icon.three{background:rgba(123,92,240,0.12);}
+.rtc-icon.week{background:rgba(6,182,212,0.12);}
+.rtc-icon.paid{background:rgba(245,158,11,0.12);}
+.rtc-icon svg{width:21px;height:21px;}
+.rtc-info{flex:1;}
+.rtc-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.rtc-desc{font-size:11px;color:var(--txt2);}
+.rtc-badge{font-size:10px;font-weight:800;background:rgba(79,111,255,0.1);border:1px solid rgba(79,111,255,0.18);color:var(--acc3);border-radius:8px;padding:4px 10px;white-space:nowrap;}
+
+/* NAV */
+.bnav{height:var(--nav);background:rgba(2,2,9,0.97);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border-top:1px solid rgba(79,111,255,0.08);display:flex;align-items:center;justify-content:space-around;padding:0 8px;position:absolute;bottom:0;left:0;right:0;z-index:100;}
+.bnav::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(79,111,255,0.3),rgba(123,92,240,0.2),rgba(79,111,255,0.3),transparent);}
+.nb{background:none;border:none;color:var(--txt3);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:8px 10px;border-radius:16px;transition:all var(--dur) var(--ease);min-width:50px;gap:4px;font-family:inherit;position:relative;}
+.nb:hover{color:var(--blue3);}
+.nb:hover .ni{transform:translateY(-2px);}
+.nb .ni{width:24px;height:24px;display:flex;align-items:center;justify-content:center;transition:all var(--dur) var(--ease-spring);position:relative;z-index:1;}
+.nb .ni svg{width:22px;height:22px;transition:all var(--dur) var(--ease);}
+.nb .nl{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;z-index:1;}
+.nb.active{color:var(--acc3);}
+.nb.active .ni svg{filter:drop-shadow(0 0 8px rgba(79,111,255,0.8));transform:scale(1.15) translateY(-1px);}
+.nb.active::after{content:'';position:absolute;bottom:6px;width:16px;height:2px;border-radius:1px;background:var(--acc);box-shadow:0 0 8px rgba(79,111,255,0.8);}
+.nb-center{background:var(--grad-acc) !important;color:#fff !important;border-radius:20px;padding:10px 20px;margin:0 4px;box-shadow:0 -4px 24px rgba(79,111,255,0.4),0 8px 32px rgba(79,111,255,0.3),var(--inner-glow);transform:translateY(-10px);transition:all 0.35s var(--ease-spring);}
+.nb-center .ni svg{filter:none !important;transform:none !important;}
+.nb-center .nl{color:rgba(255,255,255,0.7) !important;}
+.nb-center:hover{transform:translateY(-14px);box-shadow:0 -6px 32px rgba(79,111,255,0.6),0 12px 48px rgba(79,111,255,0.4);}
+.nb-center.active{color:#fff !important;}
+.nb-center.active::after{display:none;}
+
+/* MODALS */
+.modal{position:fixed;inset:0;z-index:999;display:none;align-items:flex-end;justify-content:center;}
+.modal.active{display:flex;}
+.mo{position:absolute;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:fadeIn 0.25s var(--ease);}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.mc{position:relative;background:linear-gradient(160deg,var(--card2) 0%,var(--card) 100%);border:1px solid rgba(79,111,255,0.12);border-radius:32px 32px 0 0;padding:22px 24px calc(28px + env(safe-area-inset-bottom));width:100%;max-width:520px;animation:sheetUp 0.4s var(--ease-spring);box-shadow:0 -20px 60px rgba(0,0,0,0.6),var(--inner-glow);overflow:hidden;}
+.mc::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,rgba(79,111,255,0.25),transparent);}
+@keyframes sheetUp{from{transform:translateY(110%);}to{transform:translateY(0);}}
+.mc-handle{width:40px;height:4px;background:rgba(79,111,255,0.15);border-radius:2px;margin:0 auto 22px;}
+.mc-icon{width:76px;height:76px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;}
+.mc-icon.win{background:rgba(79,111,255,0.1);border:1.5px solid rgba(79,111,255,0.25);}
+.mc-icon.lose{background:rgba(30,30,60,0.4);border:1.5px solid rgba(60,60,100,0.2);}
+.mc-icon.win svg{filter:drop-shadow(0 0 12px rgba(79,111,255,0.9));animation:winIconPulse 1.5s ease-in-out infinite alternate;}
+@keyframes winIconPulse{from{transform:scale(0.9) rotate(-5deg);}to{transform:scale(1.1) rotate(5deg);}}
+.mc-icon svg{width:36px;height:36px;}
+.mc h2{font-size:22px;font-weight:900;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--txt),var(--txt4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.mc p{color:var(--txt2);font-size:13px;text-align:center;margin-bottom:22px;line-height:1.7;}
+.cond-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(79,111,255,0.05);border:1px solid rgba(79,111,255,0.1);margin-bottom:8px;transition:all var(--dur) var(--ease);}
+.cond-item:hover{border-color:rgba(79,111,255,0.2);background:rgba(79,111,255,0.08);}
+.cond-icon{width:36px;height:36px;border-radius:10px;background:rgba(79,111,255,0.1);border:1px solid rgba(79,111,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cond-icon svg{width:17px;height:17px;}
+.cond-text{font-size:13px;line-height:1.6;flex:1;}
+.cond-text b{color:var(--txt);font-weight:700;}
+
+/* SKELETON */
+.skeleton{background:linear-gradient(90deg,rgba(79,111,255,0.04) 0%,rgba(79,111,255,0.1) 50%,rgba(79,111,255,0.04) 100%);background-size:200% 100%;animation:skeleton 1.8s ease-in-out infinite;border-radius:8px;}
+@keyframes skeleton{0%{background-position:200% center;}100%{background-position:-200% center;}}
+
+/* TOAST */
+.toast{pointer-events:auto;display:flex;align-items:center;gap:8px;padding:11px 18px;border-radius:20px;font-size:13px;font-weight:600;backdrop-filter:blur(20px);background:linear-gradient(145deg,var(--card2),var(--card3));border:1px solid rgba(79,111,255,0.15);color:var(--acc3);box-shadow:var(--shadow-lg),var(--inner-glow);}
+.toast.success{border-color:rgba(16,185,129,0.3);color:#34D399;}
+.toast.error{border-color:rgba(239,68,68,0.3);color:#F87171;}
+.toast.info{border-color:rgba(79,111,255,0.3);color:var(--blue3);}
+.toast.warn{border-color:rgba(245,158,11,0.3);color:#FCD34D;}
+
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.glow-cursor{position:fixed;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(79,111,255,0.04) 0%,transparent 70%);pointer-events:none;z-index:0;transform:translate(-50%,-50%);transition:transform 0.1s linear;}
+:focus-visible{outline:2px solid rgba(79,111,255,0.6);outline-offset:3px;border-radius:8px;}
+@supports (padding-bottom:env(safe-area-inset-bottom)){
+  .bnav{height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);}
+  .page{padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 20px);}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}}
+
+/* ════════════════════════════════════════════
+   LIVE WINS TICKER
+════════════════════════════════════════════ */
+.live-wins-wrap{width:100%;margin-bottom:10px;overflow:hidden;position:relative;}
+.live-wins-header{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#EF4444;box-shadow:0 0 8px #EF4444,0 0 16px rgba(239,68,68,0.4);animation:livePulse 1.2s ease-in-out infinite;}
+@keyframes livePulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.4);opacity:0.6;}}
+.live-wins-title{font-size:10px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:2px;}
+.live-wins-track-wrap{overflow:hidden;border-radius:12px;background:rgba(79,111,255,0.04);border:1px solid rgba(79,111,255,0.08);padding:2px 0;}
+.live-wins-track{display:flex;gap:8px;padding:6px 10px;overflow:hidden;width:100%;}
+.lw-item{display:flex;align-items:center;gap:8px;background:rgba(79,111,255,0.06);border:1px solid rgba(79,111,255,0.1);border-radius:10px;padding:7px 11px;flex-shrink:0;min-width:160px;max-width:200px;animation:lwSlideIn 0.4s var(--ease-out);}
+@keyframes lwSlideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+.lw-avatar{width:28px;height:28px;border-radius:50%;background:var(--grad-acc);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;border:1.5px solid rgba(79,111,255,0.3);}
+.lw-info{flex:1;min-width:0;}
+.lw-nick{font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lw-prize{font-size:10px;color:#34D399;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lw-time{font-size:9px;color:var(--txt3);flex-shrink:0;}
+
+/* ════════════════════════════════════════════
+   BLOCKED USER OVERLAY
+════════════════════════════════════════════ */
+#blocked-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center;padding:24px;}
+#blocked-overlay.visible{display:flex;animation:blockReveal 0.5s var(--ease-out);}
+@keyframes blockReveal{from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
+.blocked-card{background:linear-gradient(145deg,rgba(30,5,5,0.98),rgba(20,0,0,0.98));border:1.5px solid rgba(239,68,68,0.3);border-radius:28px;padding:40px 28px 32px;max-width:380px;width:100%;text-align:center;position:relative;overflow:hidden;box-shadow:0 0 80px rgba(239,68,68,0.15),0 30px 80px rgba(0,0,0,0.8);}
+.blocked-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(239,68,68,0.7),rgba(239,68,68,1),rgba(239,68,68,0.7),transparent);}
+.blocked-card::after{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(239,68,68,0.06) 0%,transparent 70%);pointer-events:none;}
+.blocked-icon{width:80px;height:80px;border-radius:50%;background:rgba(239,68,68,0.08);border:2px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;position:relative;z-index:1;}
+.blocked-icon::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(239,68,68,0.1);animation:blockedRing 2s ease-in-out infinite;}
+@keyframes blockedRing{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:0.4;}}
+.blocked-icon svg{width:36px;height:36px;}
+.blocked-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:10px;letter-spacing:1px;position:relative;z-index:1;}
+.blocked-title span{display:block;font-size:14px;font-weight:500;color:rgba(239,68,68,0.8);letter-spacing:0;margin-top:4px;}
+.blocked-desc{color:rgba(255,255,255,0.4);font-size:13px;line-height:1.7;margin-bottom:28px;position:relative;z-index:1;}
+.blocked-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:16px;border:none;border-radius:16px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;background:linear-gradient(135deg,rgba(239,68,68,0.9),rgba(185,28,28,0.9));color:#fff;position:relative;z-index:1;box-shadow:0 6px 28px rgba(239,68,68,0.3);transition:all 0.25s var(--ease);}
+.blocked-btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(239,68,68,0.5);}
+.blocked-btn:active{transform:scale(0.97);}
+.blocked-btn svg{width:16px;height:16px;}
+
+/* ════════════════════════════════════════════
+   RESPONSIVE — mobile-first tweaks
+════════════════════════════════════════════ */
+@media (max-width:390px){
+  :root{--nav:66px;--top:54px;}
+  .topbar-title{font-size:14px;letter-spacing:3px;}
+  .topbar-bal{padding:5px 10px;font-size:12px;}
+  .slot-reel-wrap{min-width:44px;}
+  .slot-item{min-height:52px;font-size:18px;}
+  #spin-btn{font-size:14px;padding:15px;}
+  .roulette-btn{padding:11px 12px;}
+  .roulette-btn-name{font-size:13px;}
+  .nb{padding:6px 8px;min-width:42px;}
+  .nl{font-size:9px;}
+  .lw-item{min-width:140px;}
+  .setup-header h1{font-size:22px;}
+}
+@media (max-width:360px){
+  .topbar-title{display:none;}
+  .slot-reel-wrap{min-width:38px;}
+  .slot-item{min-height:46px;font-size:16px;}
+  .nb{min-width:36px;padding:5px 6px;}
+}
+@media (min-width:500px){
+  #app{max-width:480px;margin:0 auto;}
+  .blocked-card{max-width:420px;}
+}
+@media (min-width:768px){
+  html{font-size:17px;}
+  .page{padding-left:20px;padding-right:20px;}
+  .topbar{padding:0 28px;}
+}
+@media (max-height:640px){
+  .slot-window{height:90px;}
+  .slot-item{min-height:46px;font-size:16px;}
+  .spin-btn-wrap{padding:2px 0 4px;}
+  #spin-btn{padding:14px;}
+  .live-wins-wrap{margin-bottom:6px;}
+}
+
+  </style>
+</head>
+<body>
+
+<div class="bg-canvas" aria-hidden="true">
+  <div class="bg-mesh"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+
+<!-- SPLASH -->
+<div id="splash" role="status">
+  <div class="splash-logo">
+    <div class="splash-ring-3"></div><div class="splash-ring"></div><div class="splash-ring-2"></div>
+    <div class="splash-icon">
+      <div class="splash-icon-bg"></div>
+      <svg viewBox="0 0 48 48" fill="none">
+        <defs><linearGradient id="sg1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#A5B4FF"/><stop offset="0.5" stop-color="#4F6FFF"/><stop offset="1" stop-color="#7B5CF0"/></linearGradient></defs>
+        <circle cx="24" cy="24" r="22" fill="url(#sg1)" opacity="0.08"/>
+        <path d="M24 5L28.5 17H42L31.5 24.5L36 37L24 29.5L12 37L16.5 24.5L6 17H19.5Z" fill="url(#sg1)"/>
+      </svg>
+    </div>
+  </div>
+  <div class="splash-title">CODE T</div>
+  <div class="splash-sub">Tank Blitz Roulette</div>
+  <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+  <div class="splash-dots"><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div></div>
+  <div class="splash-version">v2.0.0</div>
+</div>
+
+<!-- BLOCKED OVERLAY -->
+<div id="blocked-overlay" role="alertdialog" aria-modal="true" aria-labelledby="blocked-title-txt">
+  <div class="blocked-card">
+    <div class="blocked-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+    </div>
+    <div class="blocked-title" id="blocked-title-txt">
+      Вы заблокированы
+      <span>Доступ к платформе ограничен</span>
+    </div>
+    <div class="blocked-desc">
+      Ваш аккаунт был заблокирован администратором.<br>
+      Если вы считаете, что это ошибка — свяжитесь с поддержкой.
+    </div>
+    <button class="blocked-btn" onclick="openSupport()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Написать в поддержку
+    </button>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ══════════════════════════════════════════
+       SCREEN: SETUP (game id + roulette type)
+  ══════════════════════════════════════════ -->
+  <div id="screen-setup" class="screen">
+    <div class="setup-wrap">
+
+      <div class="setup-header">
+        <div class="setup-logo-wrap">
+          <div class="setup-logo-ring">
+            <div class="setup-logo-inner">
+              <svg viewBox="0 0 48 48" fill="none">
+                <defs><linearGradient id="sl1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#A5B4FF"/><stop offset="1" stop-color="#7B5CF0"/></linearGradient></defs>
+                <path d="M24 5L28.5 17H42L31.5 24.5L36 37L24 29.5L12 37L16.5 24.5L6 17H19.5Z" fill="url(#sl1)"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <h1>CODE T</h1>
+        <p>Tank Blitz Roulette</p>
+      </div>
+
+      <!-- Step 1: Game ID -->
+      <div class="setup-step" id="setup-step-1">
+        <div class="setup-step-title">Шаг 1 из 2 — Game ID</div>
+        <div class="setup-step-sub">Введите ваш Game ID в Tank Blitz чтобы начать. Найти его можно в вашем профиле в игре.</div>
+        <div class="field">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="#5560A0" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="text" id="gid-input" placeholder="Введите Game ID..." maxlength="30" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="text" onkeydown="if(event.key==='Enter')goToStep2()">
+          <div class="field-line"></div>
+        </div>
+        <button class="btn btn-primary" id="step1-btn" onclick="goToStep2()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Далее
+        </button>
+      </div>
+
+      <!-- Step 2: Choose roulette type -->
+      <div class="setup-step" id="setup-step-2" style="display:none">
+        <div class="setup-step-title">Шаг 2 из 2 — Тип рулетки</div>
+        <div class="setup-step-sub">Выберите тип бесплатной рулетки. После выбора изменить нельзя.</div>
+
+        <div class="rtype-picker" id="rtype-picker">
+
+          <div class="rtype-pick-card" data-type="day" onclick="selectRouletteType('day',this)">
+            <div class="rtype-pick-icon day">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </div>
+            <div class="rtype-pick-info">
+              <div class="rtype-pick-name">Ежедневная</div>
+              <div class="rtype-pick-desc">Раз в 24 часа · Приз до 10₽<br>Лучший выбор для ежедневной игры</div>
+            </div>
+            <div class="rtype-pick-badge free">Бесплатно</div>
+            <div class="rtype-pick-radio"><div class="rtype-pick-radio-dot"></div></div>
+          </div>
+
+          <div class="rtype-pick-card" data-type="three_days" onclick="selectRouletteType('three_days',this)">
+            <div class="rtype-pick-icon three">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div class="rtype-pick-info">
+              <div class="rtype-pick-name">Каждые 3 дня</div>
+              <div class="rtype-pick-desc">Раз в 3 дня · Приз до 20₽<br>Больше призы — реже прокруты</div>
+            </div>
+            <div class="rtype-pick-badge free">Бесплатно</div>
+            <div class="rtype-pick-radio"><div class="rtype-pick-radio-dot"></div></div>
+          </div>
+
+          <div class="rtype-pick-card" data-type="week" onclick="selectRouletteType('week',this)">
+            <div class="rtype-pick-icon week">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z"/></svg>
+            </div>
+            <div class="rtype-pick-info">
+              <div class="rtype-pick-name">Еженедельная</div>
+              <div class="rtype-pick-desc">Раз в 7 дней · Приз до 30₽<br>Максимальный приз раз в неделю</div>
+            </div>
+            <div class="rtype-pick-badge free">Бесплатно</div>
+            <div class="rtype-pick-radio"><div class="rtype-pick-radio-dot"></div></div>
+          </div>
+
+        </div>
+
+        <button class="btn btn-primary" id="step2-btn" onclick="completeSetup()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Начать играть!
+        </button>
+        <button class="btn btn-ghost" onclick="backToStep1()">← Назад</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCREEN: MAIN -->
+  <div id="screen-main" class="screen">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <svg class="topbar-logo-icon" viewBox="0 0 48 48" fill="none">
+          <defs><linearGradient id="tg1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#A5B4FF"/><stop offset="1" stop-color="#7B5CF0"/></linearGradient></defs>
+          <path d="M24 4L29 17L43 17L32 26L36 39L24 30L12 39L16 26L5 17L19 17Z" fill="url(#tg1)"/>
+        </svg>
+        <span class="topbar-title">CODE T</span>
+      </div>
+      <div class="topbar-bal" id="top-bal" role="status" aria-live="polite">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#4F6FFF" opacity=".15"/><path d="M12 6v12M9 9h4.5a1.5 1.5 0 0 1 0 3H9m0 0h5a1.5 1.5 0 0 1 0 3H9" stroke="#A5B4FF" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span id="bal-txt">0.00₽</span>
+      </div>
+    </header>
+
+    <main class="pages">
+
+      <!-- PAGE: ROULETTE -->
+      <section id="page-roulette" class="page active">
+
+        <!-- LIVE WINS -->
+        <div class="live-wins-wrap" id="live-wins-wrap">
+          <div class="live-wins-header">
+            <div class="live-dot"></div>
+            <span class="live-wins-title">Последние выигрыши</span>
+          </div>
+          <div class="live-wins-track-wrap">
+            <div class="live-wins-track" id="live-wins-track"></div>
+          </div>
+        </div>
+
+        <div class="wheel-card">
+          <!-- SLOT MACHINE -->
+          <div class="slot-machine">
+            <div class="slot-header">
+              <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="12" r="10" stroke="rgba(79,111,255,0.6)" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="rgba(79,111,255,0.4)"/><line x1="12" y1="2" x2="12" y2="5" stroke="rgba(79,111,255,0.6)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="22" stroke="rgba(79,111,255,0.6)" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="12" x2="5" y2="12" stroke="rgba(79,111,255,0.6)" stroke-width="2" stroke-linecap="round"/><line x1="19" y1="12" x2="22" y2="12" stroke="rgba(79,111,255,0.6)" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="slot-title-text">РУЛЕТКА</span>
+              <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="12" r="10" stroke="rgba(79,111,255,0.6)" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="rgba(79,111,255,0.4)"/><line x1="12" y1="2" x2="12" y2="5" stroke="rgba(79,111,255,0.6)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="22" stroke="rgba(79,111,255,0.6)" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="12" x2="5" y2="12" stroke="rgba(79,111,255,0.6)" stroke-width="2" stroke-linecap="round"/><line x1="19" y1="12" x2="22" y2="12" stroke="rgba(79,111,255,0.6)" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="slot-window">
+              <div class="slot-side-light left"></div>
+              <div class="slot-side-light right"></div>
+              <div class="slot-win-line"></div>
+              <div class="slot-win-flash" id="slot-win-flash"></div>
+              <div class="slot-reels" id="slot-reels">
+                <div class="slot-reel-wrap"><div class="slot-reel" id="reel-0"></div></div>
+                <div class="slot-reel-wrap"><div class="slot-reel" id="reel-1"></div></div>
+                <div class="slot-reel-wrap"><div class="slot-reel" id="reel-2"></div></div>
+                <div class="slot-reel-wrap"><div class="slot-reel" id="reel-3"></div></div>
+                <div class="slot-reel-wrap"><div class="slot-reel" id="reel-4"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-spin selector — показывается только для платной -->
+          <div class="multi-spin-row" id="multi-spin-row" style="display:none;">
+            <span class="multi-spin-label">Кол-во:</span>
+            <div class="multi-spin-btns">
+              <button class="ms-btn active" onclick="setMultiSpin(1,this)">×1</button>
+              <button class="ms-btn" onclick="setMultiSpin(3,this)">×3</button>
+              <button class="ms-btn" onclick="setMultiSpin(5,this)">×5</button>
+              <button class="ms-btn" onclick="setMultiSpin(10,this)">×10</button>
+            </div>
+          </div>
+
+          <!-- Roulette buttons — динамически рендерятся через JS -->
+          <div class="roulette-btns" id="roulette-btns"></div>
+
+          <div id="rstatus" class="rstatus" role="status" aria-live="polite"></div>
+
+          <div class="spin-btn-wrap">
+            <button id="spin-btn" onclick="spinIt()" disabled>КРУТИТЬ!</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            Возможные призы
+          </div>
+          <div id="prize-preview" class="prizes-grid" role="list"></div>
+        </div>
+
+      </section>
+
+      <!-- PAGE: PROFILE -->
+      <section id="page-profile" class="page">
+        <div class="prof-hero">
+          <div class="prof-hero-bg"></div>
+          <div class="prof-av-wrap">
+            <div class="prof-av" id="prof-av">
+              <span class="prof-av-letter" id="prof-av-letter">?</span>
+            </div>
+            <div class="prof-av-ring"></div>
+            <div class="prof-av-online"></div>
+          </div>
+          <div class="prof-badge">ИГРОК</div>
+          <div class="prof-gid" id="prof-gid">—</div>
+          <div class="prof-name" id="prof-name">Загрузка...</div>
+          <div class="prof-un" id="prof-un">@...</div>
+          <div class="prof-since" id="prof-since" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <span id="prof-since-txt">—</span>
+          </div>
+        </div>
+
+        <!-- Баланс + призы -->
+        <div class="stats-row">
+          <div class="scard">
+            <div class="scard-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="rgba(79,111,255,0.15)"/><path d="M12 6v12M9 9h4.5a1.5 1.5 0 0 1 0 3H9m0 0h5a1.5 1.5 0 0 1 0 3H9" stroke="#A5B4FF" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div class="sv" id="sv-bal">0₽</div>
+            <div class="sl">Баланс</div>
+          </div>
+          <div class="scard">
+            <div class="scard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#A5B4FF" stroke-width="1.8"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/></svg></div>
+            <div class="sv" id="sv-pr">0</div>
+            <div class="sl">Призов</div>
+          </div>
+        </div>
+
+        <!-- Статистика спинов -->
+        <div class="stats-row-3">
+          <div class="scard">
+            <div class="scard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#A5B4FF" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></div>
+            <div class="sv" id="sv-spins">0</div>
+            <div class="sl">Спинов</div>
+          </div>
+          <div class="scard">
+            <div class="scard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="sv green" id="sv-wins">0</div>
+            <div class="sl">Побед</div>
+          </div>
+          <div class="scard">
+            <div class="scard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="1.8"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z"/></svg></div>
+            <div class="sv gold" id="sv-biggest">0₽</div>
+            <div class="sl">Лучший</div>
+          </div>
+        </div>
+        <div class="settings-card">
+          <div class="settings-item" onclick="openChId()">
+            <div class="settings-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#A5B4FF" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+            <div class="settings-item-text">
+              <div class="settings-item-label">Изменить Game ID</div>
+              <div class="settings-item-desc" id="current-gid-display">Нажмите для изменения</div>
+            </div>
+            <div class="settings-item-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+          </div>
+        </div>
+        <div class="prizes-section">
+          <div class="prizes-header">
+            <div class="prizes-header-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+              Мои призы
+            </div>
+            <div class="prizes-count-badge" id="prizes-count-badge">0</div>
+          </div>
+          <div id="prizes-list" role="list" aria-live="polite">
+            <div class="skeleton" style="height:68px;border-radius:14px;margin-bottom:7px"></div>
+            <div class="skeleton" style="height:68px;border-radius:14px;margin-bottom:7px"></div>
+            <div class="skeleton" style="height:68px;border-radius:14px"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE: LEADERS -->
+      <section id="page-leaders" class="page">
+        <h1 class="ptitle">
+          <svg viewBox="0 0 24 24" fill="none"><defs><linearGradient id="trG" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#A5B4FF"/><stop offset="1" stop-color="#7B5CF0"/></linearGradient></defs><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z" fill="url(#trG)"/></svg>
+          Таблица лидеров
+        </h1>
+        <div id="leaders-list" role="list" aria-live="polite">
+          <div class="skeleton" style="height:66px;border-radius:18px;margin-bottom:8px"></div>
+          <div class="skeleton" style="height:66px;border-radius:18px;margin-bottom:8px"></div>
+          <div class="skeleton" style="height:66px;border-radius:18px;margin-bottom:8px"></div>
+          <div class="skeleton" style="height:66px;border-radius:18px;margin-bottom:8px"></div>
+          <div class="skeleton" style="height:66px;border-radius:18px"></div>
+        </div>
+      </section>
+
+      <!-- PAGE: INFO -->
+      <section id="page-info" class="page">
+        <h1 class="ptitle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          Информация
+        </h1>
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Условия для прокрута
+          </div>
+          <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.26 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.17 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.14a16 16 0 0 0 6 6l.61-.61a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 16z"/></svg></div><div class="info-text">Подписаться на каналы:<br><a href="https://t.me/CodeTMG" class="clink" target="_blank" rel="noopener">@CodeTMG</a> · <a href="https://t.me/SuperStarsChanell" class="clink" target="_blank" rel="noopener">@SuperStarsChanell</a></div></div>
+          <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div class="info-text"><b>Переслать сообщение</b> бота 3 разным пользователям Telegram</div></div>
+          <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div><div class="info-text"><b>Выполнять условия</b> перед каждым новым прокрутом</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Типы рулеток
+          </div>
+          <div class="roulette-type-card"><div class="rtc-icon day"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></div><div class="rtc-info"><div class="rtc-name">Ежедневная</div><div class="rtc-desc">Раз в 24 часа · до 10₽</div></div><div class="rtc-badge">Бесплатно</div></div>
+          <div class="roulette-type-card"><div class="rtc-icon three"><svg viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="rtc-info"><div class="rtc-name">Каждые 3 дня</div><div class="rtc-desc">Раз в 3 дня · до 20₽</div></div><div class="rtc-badge">Бесплатно</div></div>
+          <div class="roulette-type-card"><div class="rtc-icon week"><svg viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z"/></svg></div><div class="rtc-info"><div class="rtc-name">Еженедельная</div><div class="rtc-desc">Раз в 7 дней · до 30₽</div></div><div class="rtc-badge">Бесплатно</div></div>
+          <div class="roulette-type-card"><div class="rtc-icon paid"><svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h4.5a1.5 1.5 0 0 1 0 3H9m0 0h5a1.5 1.5 0 0 1 0 3H9"/></svg></div><div class="rtc-info"><div class="rtc-name">Платная рулетка</div><div class="rtc-desc">Аккаунты · Голда · до 50₽</div></div><div class="rtc-badge" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.2);color:#FCD34D">150₽</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Поддержка</div>
+          <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="info-text">По всем вопросам:<br><a href="https://t.me/CodeTMG" class="clink" target="_blank" rel="noopener">@CodeTMG</a></div></div>
+        </div>
+      </section>
+
+    </main>
+
+    <nav class="bnav">
+      <button class="nb" onclick="go('info')"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span><span class="nl">Инфо</span></button>
+      <button class="nb" onclick="go('info')"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span class="nl">Помощь</span></button>
+      <button class="nb nb-center active" onclick="go('roulette')"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span><span class="nl">Рулетка</span></button>
+      <button class="nb" onclick="go('leaders')"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z"/></svg></span><span class="nl">Лидеры</span></button>
+      <button class="nb" onclick="go('profile')"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="nl">Профиль</span></button>
+    </nav>
+
+  </div>
+</div>
+
+<!-- MODAL: RESULT -->
+<div id="m-result" class="modal" role="dialog" aria-modal="true">
+  <div class="mo" onclick="closeM('m-result')"></div>
+  <div class="mc">
+    <div class="mc-handle"></div>
+    <div class="mc-icon" id="m-icon-wrap"><svg id="m-icon-svg" viewBox="0 0 24 24" fill="none"></svg></div>
+    <h2 id="m-title">Результат</h2>
+    <p id="m-text">...</p>
+    <div id="m-result-claim" style="display:none;width:100%;margin-bottom:6px">
+      <button id="m-result-claim-btn" class="btn pi-claim-btn" style="background:linear-gradient(135deg,#10B981,#059669);box-shadow:0 4px 20px rgba(16,185,129,0.4);color:#fff;font-size:15px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Забрать приз</button>
+    </div>
+    <button class="btn btn-primary" onclick="closeM('m-result')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Отлично!</button>
+    <button class="btn btn-ghost" onclick="closeM('m-result');go('profile')" style="margin-top:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Мои призы</button>
+  </div>
+</div>
+
+<!-- MODAL: CONDITIONS -->
+<div id="m-cond" class="modal" role="dialog" aria-modal="true">
+  <div class="mo"></div>
+  <div class="mc">
+    <div class="mc-handle"></div>
+    <div class="mc-icon" style="background:rgba(79,111,255,0.1);border:1.5px solid rgba(79,111,255,0.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+    <h2>Условия прокрута</h2>
+    <p>Выполните все условия, чтобы получить бесплатный прокрут рулетки</p>
+    <div class="cond-item"><div class="cond-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.26 12 19.79 19.79 0 0 1 1.19 3.37 2 2 0 0 1 3.17 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.14a16 16 0 0 0 6 6l.61-.61a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg></div><div class="cond-text"><b>Подписаться на каналы</b><br><a href="https://t.me/CodeTMG" class="clink" target="_blank" rel="noopener">@CodeTMG</a> · <a href="https://t.me/SuperStarsChanell" class="clink" target="_blank" rel="noopener">@SuperStarsChanell</a></div></div>
+    <div class="cond-item"><div class="cond-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div class="cond-text"><b>Переслать сообщение</b> бота трём разным пользователям Telegram</div></div>
+    <br>
+    <button class="btn btn-primary" onclick="checkConds()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Я всё выполнил!</button>
+    <button class="btn btn-ghost" onclick="closeM('m-cond')">Позже</button>
+  </div>
+</div>
+
+<!-- MODAL: CHANGE ID -->
+<div id="m-chid" class="modal" role="dialog" aria-modal="true">
+  <div class="mo" onclick="closeM('m-chid')"></div>
+  <div class="mc">
+    <div class="mc-handle"></div>
+    <div class="mc-icon" style="background:rgba(79,111,255,0.1);border:1.5px solid rgba(79,111,255,0.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+    <h2>Изменить Game ID</h2>
+    <p>Введите новый игровой идентификатор из профиля Tank Blitz</p>
+    <div class="field">
+      <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="#5560A0" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <input type="text" id="new-gid" placeholder="Новый Game ID..." maxlength="30" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')saveNewId()">
+      <div class="field-line"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveNewId()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Сохранить</button>
+    <button class="btn btn-ghost" onclick="closeM('m-chid')">Отмена</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const tg = window.Telegram.WebApp;
+tg.ready(); tg.expand();
+tg.setHeaderColor('#020209');
+tg.setBackgroundColor('#020209');
+
+/* ═══ CONFIG ═══ */
+const CONFIG = {
+  SPIN_DURATION:3200, SPIN_ROTATIONS:6,
+  SPLASH_DELAY:2500, SPLASH_TRANSITION:600,
+  COOLDOWN_INTERVAL:1000, API_TIMEOUT:10000,
+  CACHE_TTL:30000, MIN_GAME_ID_LEN:3, PAID_COST:150,
+  REEL_COUNT:5, ITEM_H:54,
+  SUPPORT_URL:'https://t.me/codet_support',
+};
+
+/* ═══ ROULETTE TYPES CONFIG ═══ */
+const ROULETTE_TYPES = {
+  day: {
+    label:'Ежедневная', cooldownLabel:'день',
+    iconColor:'#6B8AFB',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`,
+    iconClass:'day',
+    desc:'Бесплатная · каждые 24ч'
+  },
+  three_days: {
+    label:'Каждые 3 дня', cooldownLabel:'3 дня',
+    iconColor:'#A78BFA',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,
+    iconClass:'three',
+    desc:'Бесплатная · каждые 3 дня'
+  },
+  week: {
+    label:'Еженедельная', cooldownLabel:'неделю',
+    iconColor:'#06B6D4',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z"/></svg>`,
+    iconClass:'week',
+    desc:'Бесплатная · каждую неделю'
+  },
+  paid: {
+    label:'Платная рулетка', cooldownLabel:'',
+    iconColor:'#F59E0B',
+    icon:`<svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h4.5a1.5 1.5 0 0 1 0 3H9m0 0h5a1.5 1.5 0 0 1 0 3H9"/></svg>`,
+    iconClass:'paid',
+    desc:`За ${CONFIG.PAID_COST}₽ · аккаунты, голда`
+  }
+};
+
+/* ═══ PRIZES ═══ */
+const PRIZES = Object.freeze({
+  day:[
+    {name:'10₽',type:'balance',c:'#4F6FFF',chance:5},
+    {name:'5₽', type:'balance',c:'#6B8AFB',chance:10},
+    {name:'1₽', type:'balance',c:'#7B5CF0',chance:25},
+    {name:'0.1₽',type:'balance',c:'#4338CA',chance:40},
+    {name:'Ничего',type:'nothing',c:'#0f0f28',chance:20},
+  ],
+  three_days:[
+    {name:'20₽',type:'balance',c:'#4F6FFF',chance:5},
+    {name:'10₽',type:'balance',c:'#6B8AFB',chance:10},
+    {name:'5₽', type:'balance',c:'#7B5CF0',chance:25},
+    {name:'1₽', type:'balance',c:'#4338CA',chance:40},
+    {name:'Ничего',type:'nothing',c:'#0f0f28',chance:20},
+  ],
+  week:[
+    {name:'30₽',type:'balance',c:'#A5B4FF',chance:3},
+    {name:'20₽',type:'balance',c:'#4F6FFF',chance:7},
+    {name:'10₽',type:'balance',c:'#6B8AFB',chance:15},
+    {name:'5₽', type:'balance',c:'#7B5CF0',chance:25},
+    {name:'2.5₽',type:'balance',c:'#06B6D4',chance:30},
+    {name:'Ничего',type:'nothing',c:'#0f0f28',chance:20},
+  ],
+  paid:[
+    {name:'Аккаунт',type:'account',c:'#A5B4FF',chance:5},
+    {name:'Голда',  type:'gold',   c:'#F59E0B',chance:10},
+    {name:'50₽',   type:'balance', c:'#4F6FFF',chance:15},
+    {name:'25₽',   type:'balance', c:'#6B8AFB',chance:30},
+    {name:'15₽',   type:'balance', c:'#7B5CF0',chance:40},
+  ],
+});
+
+const NAV_MAP = Object.freeze({info:0,help:1,roulette:2,leaders:3,profile:4});
+
+/* ═══ STATE ═══ */
+const STATE = {
+  user:null, page:'roulette', spinning:false,
+  cache:new Map(), wheelAngle:0,
+  selectedSetupType: null,
+  currentSpinType: null,
+  rouletteStatuses: {},
+  tickInterval: null,
+  spinCount: 1,
+};
+const setState = p => Object.assign(STATE, p);
+
+/* ═══ UTILS ═══ */
+function fmt(s){
+  s=Math.max(0,Math.ceil(s));
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  if(h)return`${h}ч ${m}м`;if(m)return`${m}м ${sec}с`;return`${sec}с`;
+}
+const throttle=(fn,ms)=>{let last=0;return(...a)=>{const now=Date.now();if(now-last>=ms){last=now;fn(...a);}};};
+const easeInOutCubic=t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function hexToRgb(hex){const n=parseInt(hex.replace('#',''),16);return{r:(n>>16)&255,g:(n>>8)&255,b:n&255};}
+function lightenHex(hex,amt){const{r,g,b}=hexToRgb(hex);return`rgb(${Math.min(255,r+amt)},${Math.min(255,g+amt)},${Math.min(255,b+amt)})`;}
+const $=(s,c=document)=>c.querySelector(s);
+const $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const setText=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+const setGradText=(id,v,grad)=>{const e=document.getElementById(id);if(!e)return;e.textContent=v;e.style.background=grad;e.style.webkitBackgroundClip="text";e.style.backgroundClip="text";e.style.webkitTextFillColor="transparent";e.style.color="transparent";};
+
+/* ═══ API ═══ */
+async function apiFetch(url,opts={}){
+  const ctrl=new AbortController(),tid=setTimeout(()=>ctrl.abort(),CONFIG.API_TIMEOUT);
+  try{
+    const res=await fetch(url,{...opts,signal:ctrl.signal,headers:{'Content-Type':'application/json','X-Telegram-Init-Data':tg.initData||'',...opts.headers}});
+    const json=await res.json().catch(()=>({}));
+    if(!res.ok){
+      // Для 403 (заблокирован) — возвращаем JSON а не бросаем ошибку
+      if(res.status===403&&json.blocked){return json;}
+      const err=new Error(`HTTP ${res.status}`);err.status=res.status;err.data=json;throw err;
+    }
+    return json;
+  }
+  catch(e){if(e.name==='AbortError')throw new Error('Timeout');throw e;}
+  finally{clearTimeout(tid);}
+}
+async function api(url,method='GET',body=null,useCache=false){
+  const key=`${method}:${url}:${JSON.stringify(body)}`;
+  if(useCache&&STATE.cache.has(key)){const{data,ts}=STATE.cache.get(key);if(Date.now()-ts<CONFIG.CACHE_TTL)return data;}
+  const data=await apiFetch(url,{method,...(body?{body:JSON.stringify(body)}:{})});
+  if(useCache)STATE.cache.set(key,{data,ts:Date.now()});
+  return data;
+}
+async function apiRetry(fn,retries=2){for(let i=0;i<=retries;i++){try{return await fn();}catch(e){if(i===retries)throw e;await new Promise(r=>setTimeout(r,600*(i+1)));}}  }
+
+/* ═══ TOAST ═══ */
+const Toast=(() => {
+  let cont;
+  const getC=()=>{if(!cont){cont=document.createElement('div');cont.style.cssText='position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:9998;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:max-content;max-width:calc(100vw - 32px);';document.body.appendChild(cont);}return cont;};
+  const icons={success:`<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,error:`<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="8" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1" fill="currentColor"/></svg>`,info:`<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="11" x2="12" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="8" r="1" fill="currentColor"/></svg>`,warn:`<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>`};
+  function show(msg,type='info',dur=3000){
+    const el=document.createElement('div');el.className=`toast ${type}`;
+    el.innerHTML=`${icons[type]||icons.info}<span>${msg}</span>`;
+    el.style.cssText='pointer-events:auto;display:flex;align-items:center;gap:8px;padding:11px 18px;border-radius:20px;font-size:13px;font-weight:600;backdrop-filter:blur(20px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);opacity:0;transform:translateY(-12px) scale(0.9);';
+    getC().appendChild(el);
+    requestAnimationFrame(()=>{el.style.opacity='1';el.style.transform='translateY(0) scale(1)';});
+    setTimeout(()=>{el.style.opacity='0';el.style.transform='translateY(-8px) scale(0.95)';setTimeout(()=>el.remove(),400);},dur);
+  }
+  return{show,success:m=>show(m,'success'),error:m=>show(m,'error'),info:m=>show(m,'info'),warn:m=>show(m,'warn')};
+})();
+
+/* ═══ HAPTIC ═══ */
+const Haptic={
+  light:()=>tg.HapticFeedback?.impactOccurred('light'),
+  medium:()=>tg.HapticFeedback?.impactOccurred('medium'),
+  heavy:()=>tg.HapticFeedback?.impactOccurred('heavy'),
+  success:()=>tg.HapticFeedback?.notificationOccurred('success'),
+  error:()=>tg.HapticFeedback?.notificationOccurred('error'),
+  warning:()=>tg.HapticFeedback?.notificationOccurred('warning'),
+  select:()=>tg.HapticFeedback?.selectionChanged(),
+};
+
+/* ═══ SPLASH ═══ */
+window.addEventListener('load',()=>{
+  const splash=document.getElementById('splash');
+  if(!splash){init();return;}
+  setTimeout(()=>{splash.classList.add('hide');setTimeout(()=>{splash.style.display='none';init();},CONFIG.SPLASH_TRANSITION);},CONFIG.SPLASH_DELAY);
+});
+
+/* ═══ INIT ═══ */
+function openSupport(){
+  const url=CONFIG.SUPPORT_URL||'https://t.me/';
+  try{tg.openTelegramLink?.(url);}catch(e){window.open(url,'_blank');}
+}
+
+function showBlockedOverlay(){
+  const el=document.getElementById('blocked-overlay');
+  if(el)el.classList.add('visible');
+}
+
+async function init(){
+  setupCursorGlow();setupRipples();
+  tg.BackButton.onClick(()=>{if(STATE.page!=='roulette')go('roulette');});
+
+  // Ждём пока Telegram заполнит initDataUnsafe (иногда нужно несколько тиков)
+  let waited=0;
+  while(!tg.initData && waited<2000){
+    await new Promise(r=>setTimeout(r,100));
+    waited+=100;
+  }
+
+  // Если initData так и нет — показываем setup (открыт вне Telegram)
+  if(!tg.initData){showScreen('setup');return;}
+
+  try{
+    // Делаем запрос напрямую без apiRetry — чтобы обработать 403 сразу
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),CONFIG.API_TIMEOUT);
+    let r;
+    try{
+      const res=await fetch('/api/user/me',{signal:ctrl.signal,headers:{'Content-Type':'application/json','X-Telegram-Init-Data':tg.initData||''}});
+      r=await res.json().catch(()=>({}));
+      // 403 = заблокирован
+      if(res.status===403||r.blocked){showBlockedOverlay();return;}
+    }finally{clearTimeout(tid);}
+
+    if(r.blocked){showBlockedOverlay();return;}
+    if(r.success){
+      setState({user:r.user});
+      if(!STATE.user.game_id||!STATE.user.roulette_type){
+        showScreen('setup');
+        if(STATE.user.game_id){
+          const inp=document.getElementById('gid-input');
+          if(inp)inp.value=STATE.user.game_id;
+          goToStep2();
+        }
+      }else{
+        showScreen('main');updateTop();go('roulette');
+        initLiveWins();
+      }
+    }else{showScreen('setup');}
+  }catch(e){
+    console.error('[Init]',e);
+    Toast.error('Ошибка подключения к серверу');
+    showScreen('setup');
+  }
+}
+
+/* ═══ LIVE WINS ═══ */
+const LIVE_WINS_DEMO=[
+  {nick:'@wolf_blitz',prize:'15₽',avatar:'W',color:'#4F6FFF'},
+  {nick:'@tankmaster',prize:'Аккаунт',avatar:'T',color:'#7B5CF0'},
+  {nick:'@dark_rider',prize:'8.50₽',avatar:'D',color:'#06B6D4'},
+  {nick:'@pro_gamer99',prize:'30₽',avatar:'P',color:'#10B981'},
+  {nick:'@blitz_king',prize:'5₽',avatar:'B',color:'#F59E0B'},
+  {nick:'@sniper_x',prize:'Голда',avatar:'S',color:'#EF4444'},
+  {nick:'@iron_tank',prize:'12₽',avatar:'I',color:'#4F6FFF'},
+  {nick:'@storm_77',prize:'20₽',avatar:'S',color:'#A78BFA'},
+];
+let _lwIdx=0,_lwTimer=null;
+
+function makeLwItem(w){
+  const el=document.createElement('div');
+  el.className='lw-item';
+  const now=new Date();
+  const timeStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  el.innerHTML=`<div class="lw-avatar" style="background:${w.color}">${w.avatar}</div><div class="lw-info"><div class="lw-nick">${w.nick}</div><div class="lw-prize">🎁 ${w.prize}</div></div><div class="lw-time">${timeStr}</div>`;
+  return el;
+}
+
+function pushLiveWin(w){
+  const track=document.getElementById('live-wins-track');
+  if(!track)return;
+  const item=makeLwItem(w);
+  track.insertBefore(item,track.firstChild);
+  while(track.children.length>4)track.removeChild(track.lastChild);
+}
+
+function initLiveWins(){
+  const track=document.getElementById('live-wins-track');
+  if(!track)return;
+  // Заполняем начальные 3 записи
+  for(let i=0;i<3;i++){
+    const w=LIVE_WINS_DEMO[(_lwIdx+i)%LIVE_WINS_DEMO.length];
+    const item=makeLwItem(w);
+    item.style.animation='none';
+    track.appendChild(item);
+  }
+  _lwIdx=3;
+  if(_lwTimer)clearInterval(_lwTimer);
+  _lwTimer=setInterval(()=>{
+    const w=LIVE_WINS_DEMO[_lwIdx%LIVE_WINS_DEMO.length];
+    _lwIdx++;
+    pushLiveWin(w);
+  },3500+Math.random()*2000);
+}
+
+// Показывать live выигрыш после успешного спина
+function addRealWin(nick,prize){
+  const initials=(nick||'?').replace('@','').charAt(0).toUpperCase();
+  const colors=['#4F6FFF','#7B5CF0','#06B6D4','#10B981','#F59E0B','#EF4444'];
+  const color=colors[Math.floor(Math.random()*colors.length)];
+  pushLiveWin({nick:nick||'@аноним',prize:prize||'Приз',avatar:initials,color});
+}
+
+/* ═══ CURSOR GLOW ═══ */
+function setupCursorGlow(){
+  const g=document.createElement('div');g.className='glow-cursor';document.body.appendChild(g);
+  const move=throttle(e=>{const t=e.touches?.[0]||e;g.style.left=`${t.clientX}px`;g.style.top=`${t.clientY}px`;},16);
+  document.addEventListener('mousemove',move,{passive:true});
+  document.addEventListener('touchmove',move,{passive:true});
+}
+
+/* ═══ RIPPLES ═══ */
+function setupRipples(){
+  document.addEventListener('pointerdown',e=>{
+    const btn=e.target.closest('.btn,#spin-btn,.roulette-btn.available,.nb,.pi-tr');if(!btn)return;
+    const rect=btn.getBoundingClientRect(),size=Math.max(rect.width,rect.height)*2;
+    const x=e.clientX-rect.left-size/2,y=e.clientY-rect.top-size/2;
+    const rpl=document.createElement('span');
+    rpl.style.cssText=`position:absolute;width:${size}px;height:${size}px;left:${x}px;top:${y}px;border-radius:50%;background:rgba(255,255,255,0.08);transform:scale(0);animation:rippleAnim 0.6s ease-out forwards;pointer-events:none;z-index:0;`;
+    if(!document.getElementById('ripple-style')){const s=document.createElement('style');s.id='ripple-style';s.textContent='@keyframes rippleAnim{to{transform:scale(1);opacity:0;}}';document.head.appendChild(s);}
+    btn.style.position='relative';btn.style.overflow='hidden';btn.appendChild(rpl);setTimeout(()=>rpl.remove(),700);
+  },{passive:true});
+}
+
+/* ═══ SCREENS ═══ */
+function showScreen(name){
+  $$('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`screen-${name}`)?.classList.add('active');
+}
+
+/* ═══ SETUP FLOW ═══ */
+function selectRouletteType(type, card){
+  setState({selectedSetupType:type});
+  $$('.rtype-pick-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  Haptic.select();
+  const btn=document.getElementById('step2-btn');
+  if(btn)btn.disabled=false;
+}
+
+function goToStep2(){
+  const v=document.getElementById('gid-input')?.value.trim()??'';
+  if(v.length<CONFIG.MIN_GAME_ID_LEN){
+    document.getElementById('gid-input')?.classList.add('shake');
+    setTimeout(()=>document.getElementById('gid-input')?.classList.remove('shake'),500);
+    Haptic.error();Toast.error('Введите правильный Game ID!');return;
+  }
+  document.getElementById('setup-step-1').style.display='none';
+  document.getElementById('setup-step-2').style.display='block';
+  document.getElementById('setup-step-2').style.animation='fadeInUp 0.4s var(--ease-out) both';
+}
+
+function backToStep1(){
+  document.getElementById('setup-step-2').style.display='none';
+  document.getElementById('setup-step-1').style.display='block';
+}
+
+async function completeSetup(){
+  const gid=document.getElementById('gid-input')?.value.trim()??'';
+  const rtype=STATE.selectedSetupType;
+  if(!rtype){Toast.warn('Выберите тип рулетки');return;}
+  const btn=document.getElementById('step2-btn');
+  if(btn){btn.disabled=true;btn.textContent='Сохраняем...';}
+  try{
+    // Сохраняем game_id
+    const r1=await api('/api/user/set-game-id','POST',{game_id:gid});
+    if(!r1.success){Haptic.error();Toast.error(r1.error||'Ошибка сохранения ID');if(btn){btn.disabled=false;btn.textContent='Начать играть!';}return;}
+    // Сохраняем тип рулетки
+    const r2=await api('/api/user/set-roulette-type','POST',{roulette_type:rtype});
+    if(!r2.success){Haptic.error();Toast.error(r2.error||'Ошибка сохранения типа');if(btn){btn.disabled=false;btn.textContent='Начать играть!';}return;}
+    setState({user:{...r1.user,...(r2.user||{}),roulette_type:rtype}});
+    Haptic.success();Toast.success('Добро пожаловать!');
+    showScreen('main');updateTop();go('roulette');
+  }catch(e){Haptic.error();Toast.error('Ошибка соединения');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Начать играть!';}}
+}
+
+/* ═══ NAV ═══ */
+function go(page){
+  if(STATE.page===page&&page!=='roulette')return;
+  setState({page});Haptic.select();
+  $$('.page').forEach(x=>x.classList.remove('active','page-enter'));
+  $$('.nb').forEach(x=>x.classList.remove('active'));
+  const pg=document.getElementById(`page-${page}`);
+  if(pg){pg.classList.add('active');requestAnimationFrame(()=>requestAnimationFrame(()=>pg.classList.add('page-enter')));}
+  $$('.nb')[NAV_MAP[page]??2]?.classList.add('active');
+  tg.BackButton[page!=='roulette'?'show':'hide']();
+  ({profile:loadProf,leaders:loadLeaders,roulette:initRoulettePage})[page]?.();
+}
+
+/* ═══ BALANCE ═══ */
+function updateTop(bump=false){
+  if(!STATE.user)return;
+  setText('bal-txt',`${(STATE.user.balance||0).toFixed(2)}₽`);
+  if(bump){const el=document.getElementById('top-bal');if(el){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}Haptic.success();}
+}
+
+/* ═══════════════════════════════════════════
+   ROULETTE PAGE INIT
+═══════════════════════════════════════════ */
+async function initRoulettePage(){
+  const freeType=STATE.user?.roulette_type;
+  if(!freeType){showScreen('setup');return;}
+  // Запускаем live выигрыши
+  if(!_lwTimer)initLiveWins();
+
+  // Загружаем статусы обоих рулеток
+  await loadAllStatuses();
+
+  // Рендерим кнопки
+  renderRouletteButtons();
+
+  // Ставим активный тип — предпочтительно тот что можно крутить
+  const freeStatus=STATE.rouletteStatuses[freeType]||{};
+  const paidStatus=STATE.rouletteStatuses['paid']||{};
+
+  let activeType = null;
+  if(freeStatus.cooldown===0&&freeStatus.conditions_met) activeType=freeType;
+  else if(paidStatus.available) activeType='paid';
+  else activeType=freeType; // по умолчанию бесплатная
+
+  setState({currentSpinType:activeType});
+  highlightActiveBtn(activeType);
+  renderSlotReels(activeType);
+  renderPrizePrev(activeType);
+  showMultiSpinRow(activeType==='paid');
+  updateSpinBtn();
+  updateStatus();
+
+  // Запускаем тик для обновления таймеров
+  startTickTimer();
+}
+
+async function loadAllStatuses(){
+  const freeType=STATE.user?.roulette_type;
+  if(!freeType)return;
+  try{
+    const [freeRes,paidRes]=await Promise.allSettled([
+      api(`/api/roulette/status?type=${freeType}`),
+      api(`/api/roulette/status?type=paid`),
+    ]);
+    const statuses={};
+    if(freeRes.status==='fulfilled'&&freeRes.value){
+      statuses[freeType]={cooldown:freeRes.value.cooldown||0,conditions_met:!!freeRes.value.conditions_met};
+    }
+    if(paidRes.status==='fulfilled'&&paidRes.value){
+      const bal=STATE.user?.balance||0;
+      statuses['paid']={cooldown:0,conditions_met:true,available:bal>=CONFIG.PAID_COST};
+    }
+    setState({rouletteStatuses:statuses});
+  }catch(e){console.error('[loadAllStatuses]',e);}
+}
+
+/* ═══ RENDER ROULETTE BUTTONS ═══ */
+function renderRouletteButtons(){
+  const container=document.getElementById('roulette-btns');if(!container)return;
+  const freeType=STATE.user?.roulette_type;
+  if(!freeType)return;
+
+  const types=[freeType,'paid'];
+  container.innerHTML='';
+
+  types.forEach(type=>{
+    const cfg=ROULETTE_TYPES[type];if(!cfg)return;
+    const status=STATE.rouletteStatuses[type]||{};
+    const btn=buildRouletteBtn(type,cfg,status);
+    container.appendChild(btn);
+  });
+}
+
+function buildRouletteBtn(type,cfg,status){
+  const div=document.createElement('div');
+  const isPaid=type==='paid';
+  const bal=STATE.user?.balance||0;
+
+  let isLocked=false;
+  let lockReason='';
+
+  if(isPaid){
+    isLocked=bal<CONFIG.PAID_COST;
+    if(isLocked)lockReason=`Нужно ${(CONFIG.PAID_COST-bal).toFixed(2)}₽`;
+  }else{
+    if(status.cooldown>0){
+      isLocked=true;
+      lockReason=fmt(status.cooldown);
+    }
+  }
+
+  div.className=`roulette-btn ${isLocked?'locked':'available'}`;
+  div.dataset.type=type;
+  div.dataset.locked=isLocked?'1':'0';
+
+  if(!isLocked){
+    div.onclick=()=>selectSpinType(type,div);
+  }
+
+  const iconBg=`rtype-pick-icon ${cfg.iconClass}`;
+
+  div.innerHTML=`
+    <div class="${iconBg}" style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${cfg.icon}</div>
+    <div class="roulette-btn-info">
+      <div class="roulette-btn-name">${cfg.label}</div>
+      <div class="roulette-btn-sub">${cfg.desc}</div>
+    </div>
+    <div class="roulette-btn-right">
+      ${isLocked
+        ? `<div class="cooldown-display" id="cd-${type}">
+             ${isPaid
+               ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>${lockReason}`
+               : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="cd-text-${type}">${lockReason}</span>`}
+           </div>`
+        : `<div class="roulette-btn-tag">${isPaid?`${CONFIG.PAID_COST}₽`:'Доступно'}</div>`
+      }
+    </div>
+  `;
+
+  return div;
+}
+
+function selectSpinType(type,el){
+  if(STATE.spinning)return;
+  if(el?.dataset?.locked==='1')return;
+  setState({currentSpinType:type,spinCount:1});
+  Haptic.select();
+  highlightActiveBtn(type);
+  renderSlotReels(type);
+  setState({wheelAngle:0});
+  renderPrizePrev(type);
+  showMultiSpinRow(type==='paid');
+  // Reset multi-spin buttons
+  document.querySelectorAll('.ms-btn').forEach((b,i)=>{
+    b.classList.remove('active','paid-active');
+    if(i===0) b.classList.add(type==='paid'?'paid-active':'active');
+  });
+  updateSpinBtn();
+  updateStatus();
+}
+
+function highlightActiveBtn(type){
+  $$('.roulette-btn').forEach(b=>{
+    b.classList.remove('active-spin');
+    if(b.dataset.type===type&&b.dataset.locked!=='1')b.classList.add('active-spin');
+  });
+}
+
+/* ═══ TICK TIMER — обновление таймеров каждую секунду ═══ */
+function startTickTimer(){
+  if(STATE.tickInterval)clearInterval(STATE.tickInterval);
+  const interval=setInterval(()=>{
+    const freeType=STATE.user?.roulette_type;if(!freeType)return;
+    const st=STATE.rouletteStatuses[freeType];
+    if(!st)return;
+    if(st.cooldown>0){
+      st.cooldown--;
+      // Обновляем только текст таймера
+      const cdText=document.getElementById(`cd-text-${freeType}`);
+      if(cdText)cdText.textContent=fmt(st.cooldown);
+      // Если таймер закончился — перерисовываем кнопки
+      if(st.cooldown<=0){
+        setState({rouletteStatuses:{...STATE.rouletteStatuses,[freeType]:{...st,cooldown:0}}});
+        renderRouletteButtons();
+        // Автоматически выбираем бесплатную
+        setState({currentSpinType:freeType});
+        highlightActiveBtn(freeType);
+        renderSlotReels(freeType);
+        renderPrizePrev(freeType);
+        showMultiSpinRow(false);
+        updateSpinBtn();
+        updateStatus();
+        Toast.success('Бесплатная рулетка снова доступна!');
+        Haptic.success();
+      }
+    }
+  },CONFIG.COOLDOWN_INTERVAL);
+  setState({tickInterval:interval});
+}
+
+/* ═══ SPIN BUTTON & STATUS ═══ */
+function updateSpinBtn(){
+  const sb=document.getElementById('spin-btn');if(!sb)return;
+  const type=STATE.currentSpinType;
+  if(!type){sb.disabled=true;sb.textContent='Выберите рулетку';return;}
+  const status=STATE.rouletteStatuses[type]||{};
+  const isPaid=type==='paid';
+  const count=isPaid?STATE.spinCount:1;
+  const totalCost=CONFIG.PAID_COST*count;
+  if(isPaid){
+    const bal=STATE.user?.balance||0;
+    if(bal>=totalCost){
+      sb.disabled=false;
+      sb.innerHTML=count>1
+        ?`КРУТИТЬ ${count}× — ${totalCost}₽`
+        :`КРУТИТЬ — ${CONFIG.PAID_COST}₽`;
+    }else{
+      sb.disabled=true;
+      sb.innerHTML=`Нужно ${(totalCost-bal).toFixed(2)}₽`;
+    }
+  }else{
+    if(status.cooldown>0){sb.disabled=true;sb.innerHTML=`${fmt(status.cooldown)}`;}
+    else if(!status.conditions_met){sb.disabled=false;sb.innerHTML=`Выполнить условия`;}
+    else{sb.disabled=false;sb.innerHTML=`КРУТИТЬ!`;}
+  }
+}
+
+function updateStatus(){
+  const el=document.getElementById('rstatus');if(!el)return;
+  const type=STATE.currentSpinType;
+  if(!type){el.innerHTML='';return;}
+  const status=STATE.rouletteStatuses[type]||{};
+  const isPaid=type==='paid';
+  const count=isPaid?STATE.spinCount:1;
+  const totalCost=CONFIG.PAID_COST*count;
+  if(isPaid){
+    const bal=STATE.user?.balance||0;
+    if(bal>=totalCost) el.innerHTML=`${checkIcon()} Баланс: ${bal.toFixed(2)}₽${count>1?` · ${count} прокрута × ${CONFIG.PAID_COST}₽`:''}`;
+    else el.innerHTML=`${warnIcon()} Нужно ещё ${(totalCost-bal).toFixed(2)}₽`;
+  }else{
+    if(status.cooldown>0)el.innerHTML=`${clockIcon()} Через ${fmt(status.cooldown)}`;
+    else if(!status.conditions_met)el.innerHTML=`${warnIcon()} Выполните условия`;
+    else el.innerHTML=`${checkIcon()} Готово к прокруту!`;
+  }
+}
+
+const clockIcon=(c='currentColor')=>`<svg viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+const checkIcon=(c='#6B8AFB')=>`<svg viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>`;
+const warnIcon=(c='#4F6FFF')=>`<svg viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="${c}"/></svg>`;
+
+/* ═══ PRIZE PREVIEW ═══ */
+function renderPrizePrev(type){
+  const el=document.getElementById('prize-preview');if(!el)return;
+  const frag=document.createDocumentFragment();
+  (PRIZES[type]||[]).forEach((p,i)=>{
+    const d=document.createElement('div');d.className='prize-pill';d.style.animationDelay=`${i*0.07}s`;
+    d.innerHTML=`<div class="prize-dot" style="background:${p.c};box-shadow:0 0 8px ${p.c}88"></div><span class="prize-name">${p.name}</span><span class="prize-pct">${p.chance}%</span>`;
+    frag.appendChild(d);
+  });
+  el.innerHTML='';el.appendChild(frag);
+}
+
+/* ═══════════════════════════════════════════
+   SLOT MACHINE RENDERER
+═══════════════════════════════════════════ */
+
+/* Prize icons as SVG strings */
+function getPrizeIcon(prize){
+  const c=prize.c||'#4F6FFF';
+  if(prize.type==='account')
+    return`<svg viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="${c}" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="${c}" stroke-width="2"/></svg>`;
+  if(prize.type==='gold')
+    return`<svg viewBox="0 0 24 24" fill="none"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z" fill="${c}55" stroke="${c}" stroke-width="1.8"/></svg>`;
+  if(prize.type==='nothing')
+    return`<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#1e2040" stroke-width="1.5"/><line x1="8" y1="12" x2="16" y2="12" stroke="#2a2a5a" stroke-width="2" stroke-linecap="round"/></svg>`;
+  // balance — coin with ruble sign
+  return`<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="${c}22" stroke="${c}" stroke-width="1.5"/><path d="M9 8h4a2 2 0 0 1 0 4H9m0 0h5a2 2 0 0 1 0 4H9M9 8v10M9 12h7" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+}
+
+function buildReelItems(prizes, extraLoops=3){
+  // Repeat prizes for seamless looping
+  const items=[];
+  for(let r=0;r<extraLoops;r++) prizes.forEach(p=>items.push(p));
+  return items;
+}
+
+function renderSlotReels(type){
+  const prizes=PRIZES[type]||[];
+  for(let ri=0;ri<CONFIG.REEL_COUNT;ri++){
+    const reel=document.getElementById(`reel-${ri}`);
+    if(!reel)continue;
+    reel.innerHTML='';
+    // Build extended list with shuffled order per reel
+    const shuffled=[...prizes].sort(()=>Math.random()-0.5);
+    const items=buildReelItems(shuffled,6);
+    items.forEach(p=>{
+      const div=document.createElement('div');
+      div.className='slot-item';
+      div.innerHTML=`<div class="slot-item-icon" style="background:${p.c}22">${getPrizeIcon(p)}</div><div class="slot-item-label">${p.name}</div>`;
+      reel.appendChild(div);
+    });
+    // Reset position to middle of extended list
+    const mid=Math.floor(items.length/2);
+    reel.style.transition='none';
+    reel.style.transform=`translateY(-${mid*CONFIG.ITEM_H}px)`;
+    reel._baseOffset=mid*CONFIG.ITEM_H;
+    reel._items=items;
+  }
+}
+
+/* Animate reel to land on targetIdx (index in PRIZES array) */
+function animateReel(reelEl, prizes, targetIdx, delay, duration, onDone){
+  const items=reelEl._items||[];
+  const base=reelEl._baseOffset||0;
+  // Find an occurrence of targetIdx prize (by name) in the second half of items
+  const targetName=prizes[targetIdx].name;
+  // Find occurrence near end of items
+  let landing=-1;
+  for(let i=Math.floor(items.length*0.6);i<items.length;i++){
+    if(items[i].name===targetName){landing=i;break;}
+  }
+  if(landing<0) landing=items.length-prizes.length+targetIdx;
+  const targetY=landing*CONFIG.ITEM_H;
+  // Extra spins on top
+  const extraSpins=Math.floor(prizes.length*(3+Math.floor(Math.random()*3)));
+  const totalY=base+extraSpins*CONFIG.ITEM_H+(targetY-base);
+
+  reelEl.style.transition='none';
+  reelEl.style.transform=`translateY(-${base}px)`;
+
+  setTimeout(()=>{
+    reelEl.style.transition=`transform ${duration}ms cubic-bezier(0.17,0.67,0.12,1)`;
+    reelEl.style.transform=`translateY(-${totalY}px)`;
+    // Haptic ticks during spin
+    let ticks=0;
+    const tickInterval=setInterval(()=>{
+      ticks++;
+      if(ticks<6) Haptic.light(); else if(ticks<12) Haptic.medium(); else Haptic.light();
+      if(ticks>20) clearInterval(tickInterval);
+    }, duration/20);
+    setTimeout(()=>{
+      clearInterval(tickInterval);
+      // Mark winner cell
+      const allItems=reelEl.querySelectorAll('.slot-item');
+      allItems.forEach((el,i)=>el.classList.remove('winner'));
+      if(allItems[landing]) allItems[landing].classList.add('winner');
+      onDone&&onDone();
+    }, duration+50);
+  }, delay);
+}
+
+/* Run full slot animation for given prizeIdx */
+function runSlotAnimation(type, prizeIdx, onComplete){
+  const prizes=PRIZES[type]||[];
+  const baseDur=CONFIG.SPIN_DURATION;
+  let done=0;
+  for(let ri=0;ri<CONFIG.REEL_COUNT;ri++){
+    const reel=document.getElementById(`reel-${ri}`);
+    if(!reel)continue;
+    const delay=ri*220;
+    const dur=baseDur+ri*180;
+    animateReel(reel, prizes, prizeIdx, delay, dur, ()=>{
+      done++;
+      if(done===CONFIG.REEL_COUNT){
+        // Flash effect
+        const flash=document.getElementById('slot-win-flash');
+        if(flash){flash.classList.add('active');setTimeout(()=>flash.classList.remove('active'),1800);}
+        Haptic.heavy();
+        setTimeout(onComplete,350);
+      }
+    });
+  }
+}
+
+/* Compatibility stub — no longer draws a canvas wheel */
+function drawWheel(type,angle){}
+
+/* ═══ MULTI-SPIN SELECTOR ═══ */
+function setMultiSpin(n,btn){
+  if(STATE.spinning)return;
+  setState({spinCount:n});
+  const isPaid=STATE.currentSpinType==='paid';
+  document.querySelectorAll('.ms-btn').forEach(b=>b.classList.remove('active','paid-active'));
+  if(btn){btn.classList.add(isPaid?'paid-active':'active');}
+  updateSpinBtn();
+}
+
+function showMultiSpinRow(show){
+  const row=document.getElementById('multi-spin-row');
+  if(row) row.style.display=show?'flex':'none';
+}
+
+/* ═══ SPIN ═══ */
+async function spinIt(){
+  if(STATE.spinning)return;
+  const type=STATE.currentSpinType;
+  if(!type)return;
+  const sb=document.getElementById('spin-btn');
+  const isPaid=type==='paid';
+  const count=isPaid?STATE.spinCount:1;
+
+  // Проверяем условия для бесплатной
+  if(!isPaid){
+    const status=STATE.rouletteStatuses[type]||{};
+    if(!status.conditions_met){openM('m-cond');Haptic.warning();return;}
+    if(status.cooldown>0){Toast.warn('Рулетка ещё не доступна');return;}
+  } else {
+    const bal=STATE.user?.balance||0;
+    const totalCost=CONFIG.PAID_COST*count;
+    if(bal<totalCost){Toast.warn(`Нужно ${totalCost}₽ на балансе`);Haptic.warning();return;}
+  }
+
+  setState({spinning:true});
+  if(sb){sb.disabled=true;sb.innerHTML=`Загрузка...`;}
+  Haptic.medium();
+
+  try{
+    // Send ALL spin requests in parallel at once (not sequentially)
+    if(sb) sb.innerHTML=count>1?`Загрузка ${count}×...`:`Загрузка...`;
+    const spinPromises=Array.from({length:count},()=>api('/api/roulette/spin','POST',{type}));
+    const rawResults=await Promise.all(spinPromises);
+    const results=rawResults.filter(r=>r.success);
+
+    if(results.length===0){
+      Haptic.error();Toast.error(rawResults[0]?.error||'Ошибка сервера');resetSpin(type);return;
+    }
+
+    // Update balance from last successful result
+    const lastResult=results[results.length-1];
+    if(lastResult.user){setState({user:{...STATE.user,balance:lastResult.user.balance}});updateTop(true);}
+
+    const prizes=PRIZES[type]||[];
+
+    // Animate single spin result
+    const doSingleAnim=(r,cb)=>{
+      const idx=Math.max(0,prizes.findIndex(p=>p.name===r.prize.name));
+      renderSlotReels(type);
+      runSlotAnimation(type,idx,cb);
+    };
+
+    if(count===1){
+      if(sb) sb.innerHTML=`Крутим...`;
+      doSingleAnim(results[0],async()=>{
+        showResult(results[0].prize, results[0].prize.prize_id);
+        // Добавляем в live выигрыши
+        if(results[0].prize&&results[0].prize.type!=='nothing'){
+          const nick=STATE.user?.username?`@${STATE.user.username}`:(STATE.user?.first_name||'Игрок');
+          addRealWin(nick,results[0].prize.name||results[0].prize.amount_str||'Приз');
+        }
+        STATE.cache.clear();
+        await loadAllStatuses();
+        renderRouletteButtons();
+        highlightActiveBtn(STATE.currentSpinType);
+        updateSpinBtn();updateStatus();
+        resetSpin(type);
+      });
+    } else {
+      // Multi-spin: show all results at once after one animation spin
+      if(sb) sb.innerHTML=`Крутим ${results.length}×...`;
+      // Use last prize index for the animation
+      const lastR=results[results.length-1];
+      doSingleAnim(lastR,async()=>{
+        // Show summary of all results immediately
+        const wins=results.filter(r=>r.prize.type!=='nothing');
+        const summary=wins.length>0
+          ?`${wins.length} выигрышей из ${results.length}! Баланс: ${(STATE.user?.balance||0).toFixed(2)}₽`
+          :`Не повезло ${results.length} раз подряд`;
+        showMultiResult(results,summary);
+        STATE.cache.clear();
+        await loadAllStatuses();
+        renderRouletteButtons();
+        highlightActiveBtn(STATE.currentSpinType);
+        showMultiSpinRow(STATE.currentSpinType==='paid');
+        updateSpinBtn();updateStatus();
+        resetSpin(type);
+      });
+    }
+  }catch(e){console.error('[spinIt]',e);Haptic.error();Toast.error('Ошибка соединения!');resetSpin(type);}
+}
+
+function resetSpin(type){
+  setState({spinning:false});
+  updateSpinBtn();
+  // Перезапускаем тик
+  startTickTimer();
+}
+
+/* ═══ RESULT ═══ */
+function showResult(prize, prizeId){
+  const wrap=document.getElementById('m-icon-wrap'),svg=document.getElementById('m-icon-svg'),isWin=prize.type!=='nothing';
+  if(wrap)wrap.className=`mc-icon ${isWin?'win':'lose'}`;
+  if(svg)svg.innerHTML=isWin
+    ?`<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="rgba(79,111,255,0.4)" stroke="#6B8AFB" stroke-width="1.5" stroke-linejoin="round"/>`
+    :`<circle cx="12" cy="12" r="10" stroke="#1e1e48" stroke-width="1.8"/><line x1="8" y1="8" x2="16" y2="16" stroke="#30366A" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke="#30366A" stroke-width="2" stroke-linecap="round"/>`;
+  const needClaim=isWin&&(prize.type==='account'||prize.type==='gold');
+  setText('m-title',isWin?'Поздравляем!':'Не повезло...');
+  setText('m-text',isWin
+    ?(needClaim?`Вы выиграли: ${prize.name}! Нажмите «Забрать», чтобы получить приз.`:`Вы выиграли: ${prize.name}! Приз зачислен на баланс.`)
+    :'В этот раз ничего не выпало. Попробуйте снова!');
+  const claimWrap=document.getElementById('m-result-claim');
+  if(claimWrap){
+    if(needClaim&&prizeId){
+      claimWrap.style.display='';
+      const claimBtn=document.getElementById('m-result-claim-btn');
+      if(claimBtn) claimBtn.onclick=()=>{closeM('m-result');claimPrize(prizeId,claimBtn);};
+    } else { claimWrap.style.display='none'; }
+  }
+  openM('m-result');
+  if(isWin){Haptic.success();spawnConfetti();}else Haptic.error();
+}
+
+function showMultiResult(results, summary){
+  const wins=results.filter(r=>r.prize.type!=='nothing');
+  const isWin=wins.length>0;
+  const wrap=document.getElementById('m-icon-wrap'),svg=document.getElementById('m-icon-svg');
+  if(wrap)wrap.className=`mc-icon ${isWin?'win':'lose'}`;
+  if(svg)svg.innerHTML=isWin
+    ?`<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="rgba(79,111,255,0.4)" stroke="#6B8AFB" stroke-width="1.5" stroke-linejoin="round"/>`
+    :`<circle cx="12" cy="12" r="10" stroke="#1e1e48" stroke-width="1.8"/><line x1="8" y1="8" x2="16" y2="16" stroke="#30366A" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke="#30366A" stroke-width="2" stroke-linecap="round"/>`;
+  setText('m-title',isWin?`${wins.length} победы!`:'Не повезло...');
+  // Build results summary
+  const lines=results.map(r=>r.prize.type==='nothing'?'✗ Ничего':`✓ ${r.prize.name}`).join(' · ');
+  setText('m-text',lines);
+  openM('m-result');
+  if(isWin){Haptic.success();spawnConfetti();}else Haptic.error();
+}
+
+/* ═══ CONFETTI ═══ */
+function spawnConfetti(){
+  const colors=['#4F6FFF','#A5B4FF','#7B5CF0','#06B6D4','#6B8AFB','#4338CA'];
+  if(!document.getElementById('confetti-style')){const s=document.createElement('style');s.id='confetti-style';s.textContent='@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg) scale(0.3);opacity:0;}}';document.head.appendChild(s);}
+  for(let i=0;i<50;i++)setTimeout(()=>{const el=document.createElement('div');const color=colors[Math.floor(Math.random()*colors.length)],size=Math.random()*8+4;el.style.cssText=`position:fixed;top:-10px;left:${Math.random()*100}vw;width:${size}px;height:${size}px;background:${color};border-radius:${Math.random()>0.5?'50%':'2px'};pointer-events:none;z-index:9997;animation:confettiFall ${1.5+Math.random()*1.5}s ease-in ${Math.random()*0.5}s forwards;`;document.body.appendChild(el);setTimeout(()=>el.remove(),3500);},i*20);
+}
+
+/* ═══ CONDITIONS ═══ */
+async function checkConds(){
+  const btn=$('#m-cond .btn-primary');if(btn){btn.disabled=true;btn.textContent='Проверяем...';}
+  try{
+    const type=STATE.currentSpinType||STATE.user?.roulette_type;
+    const r=await api('/api/roulette/check-conditions','POST',{type,forwarded:true});
+    closeM('m-cond');
+    if(r.conditions_met){
+      // Обновляем статус
+      const st=STATE.rouletteStatuses[type]||{};
+      setState({rouletteStatuses:{...STATE.rouletteStatuses,[type]:{...st,conditions_met:true}}});
+      updateSpinBtn();updateStatus();
+      Toast.success('✅ Условия выполнены!');Haptic.success();
+    }else{Toast.warn('❌ Сначала выполните все условия!');Haptic.warning();}
+  }catch(e){Toast.error('Ошибка проверки');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Я всё выполнил!';}}
+}
+
+/* ═══ PROFILE ═══ */
+async function loadProf(){
+  const prizesList=document.getElementById('prizes-list');
+  if(prizesList)prizesList.innerHTML='<div class="skeleton" style="height:68px;border-radius:14px;margin-bottom:7px"></div><div class="skeleton" style="height:68px;border-radius:14px;margin-bottom:7px"></div><div class="skeleton" style="height:68px;border-radius:14px"></div>';
+  try{
+    const r=await api('/api/user/me');
+    if(!r.success){Toast.error('Ошибка загрузки профиля');return;}
+    setState({user:r.user});updateTop();
+
+    const tgu=tg.initDataUnsafe?.user;
+    const gid=r.user.game_id||'—';
+    const firstName=tgu?.first_name||r.user.first_name||'Игрок';
+
+    // ── Аватар ────────────────────────────────────────────────
+    const avEl=document.getElementById('prof-av');
+    const avLetter=document.getElementById('prof-av-letter');
+    const photoUrl=tgu?.photo_url;
+    if(avEl){
+      if(photoUrl){
+        avEl.innerHTML=`<img src="${photoUrl}" alt="avatar" onerror="this.parentElement.innerHTML='<span class=\\'prof-av-letter\\'>${firstName.charAt(0).toUpperCase()}</span>'">`;
+      } else {
+        if(avLetter) avLetter.textContent=firstName.charAt(0).toUpperCase();
+      }
+    }
+
+    // ── Основные поля ──────────────────────────────────────────
+    setText('prof-gid',gid);
+    setText('prof-name',firstName);
+    setText('prof-un',tgu?.username?`@${tgu.username}`:'—');
+    setText('sv-bal',`${(r.user.balance||0).toFixed(2)}₽`);
+
+    // ── Дата регистрации ───────────────────────────────────────
+    const sinceEl=document.getElementById('prof-since');
+    const sinceTxt=document.getElementById('prof-since-txt');
+    if(r.user.created_at&&sinceEl&&sinceTxt){
+      sinceTxt.textContent=`В боте с ${r.user.created_at}`;
+      sinceEl.style.display='flex';
+    }
+
+    // ── Статистика спинов ──────────────────────────────────────
+    const ss=r.user.spin_stats||{total:0,wins:0,biggest:0};
+    setText('sv-spins',ss.total);
+    // Используем setGradText для элементов с gradient-текстом (Android WebView fix)
+    setGradText('sv-wins',ss.wins,'linear-gradient(135deg,#34D399,#10B981)');
+    setGradText('sv-biggest',ss.biggest>0?`${ss.biggest}₽`:'—','linear-gradient(135deg,#FCD34D,#F59E0B)');
+
+    // ── Прочее ────────────────────────────────────────────────
+    const gidDisplay=document.getElementById('current-gid-display');
+    if(gidDisplay)gidDisplay.textContent=gid!=='—'?`Текущий: ${gid}`:'Нажмите для изменения';
+
+    await loadPrizes();
+  }catch(e){console.error('[loadProf]',e);Toast.error('Ошибка загрузки профиля');}
+}
+
+async function loadPrizes(){
+  const el=document.getElementById('prizes-list');if(!el)return;
+  try{
+    const r=await api('/api/user/prizes');
+    if(!r.success||!r.prizes?.length){
+      setText('sv-pr','0');
+      const badge=document.getElementById('prizes-count-badge');if(badge)badge.textContent='0';
+      el.innerHTML=`<div class="empty-prizes"><div class="empty-prizes-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6B8AFB" stroke-width="1.5"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><div class="empty-prizes-title">Призов пока нет</div><div class="empty-prizes-sub">Крутите рулетку и выигрывайте<br>ценные призы!</div></div>`;
+      return;
+    }
+    const count=r.prizes.length;
+    setText('sv-pr',count);
+    const badge=document.getElementById('prizes-count-badge');if(badge)badge.textContent=count;
+    const frag=document.createDocumentFragment();
+    r.prizes.forEach((prize,i)=>frag.appendChild(buildPrizeItem(prize,i)));
+    el.innerHTML='';el.appendChild(frag);
+  }catch(e){el.innerHTML=`<div class="empty-prizes"><div class="empty-prizes-title" style="color:var(--red)">Ошибка загрузки</div></div>`;}
+}
+
+function buildPrizeItem(prize,idx){
+  const el=document.createElement('div');el.className='pitem';el.style.animationDelay=`${idx*0.06}s`;
+  const t=prize.prize_type||'nothing';
+  const typeLabels={balance:'Баланс',account:'Аккаунт',gold:'Голда',nothing:'Ничего'};
+  const icons={
+    balance:`<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="rgba(79,111,255,0.15)"/><path d="M12 6v12M9 9h4.5a1.5 1.5 0 0 1 0 3H9m0 0h5a1.5 1.5 0 0 1 0 3H9" stroke="#A5B4FF" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    account:`<svg viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#34D399" stroke-width="1.8"/><circle cx="12" cy="7" r="4" stroke="#34D399" stroke-width="1.8"/></svg>`,
+    gold:`<svg viewBox="0 0 24 24" fill="none"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="rgba(245,158,11,0.2)" stroke="#FCD34D" stroke-width="1.5"/></svg>`,
+    nothing:`<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1e2048" stroke-width="1.5"/><line x1="8" y1="12" x2="16" y2="12" stroke="#30366A" stroke-width="2" stroke-linecap="round"/></svg>`,
+  };
+  const date=new Date(prize.won_at).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});
+  let action='';
+  if(prize.is_received){
+    action=`<div class="pi-action"><span class="pi-status-badge received">✓ Получен</span></div>`;
+  } else if(t==='account'||t==='gold'){
+    const transferBtn=prize.can_transfer?`<button class="pi-tr pi-tr-sm" onclick="doTransfer(${prize.id})" title="Передать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>`:'';
+    action=`<div class="pi-action pi-action-row"><button class="pi-claim-btn pi-tr" onclick="claimPrize(${prize.id},this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>Забрать</button>${transferBtn}</div>`;
+  } else if(prize.can_transfer){
+    action=`<div class="pi-action"><button class="pi-tr" onclick="doTransfer(${prize.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Передать</button></div>`;
+  } else {
+    action=`<div class="pi-action"><span class="pi-status-badge">● Активен</span></div>`;
+  }
+  el.innerHTML=`<div class="pi-icon-wrap ${t}">${icons[t]||icons.nothing}</div><div class="pi-info"><div class="pi-name">${prize.prize_name}</div><div class="pi-meta"><span class="pi-date">${date}</span><span class="pi-type-badge ${t}">${typeLabels[t]||t}</span></div></div>${action}`;
+  return el;
+}
+
+async function doTransfer(prizeId){
+  tg.showPrompt('Введите @username или ID получателя:',async v=>{
+    if(!v?.trim())return;
+    try{
+      const r=await api('/api/user/transfer-prize','POST',{prize_id:prizeId,target:v.trim().replace('@','')});
+      if(r.success){Toast.success('✅ Приз передан!');Haptic.success();await loadPrizes();}
+      else{Toast.error(r.error||'Ошибка передачи');Haptic.error();}
+    }catch(e){Toast.error('Ошибка соединения');}
+  });
+}
+
+async function claimPrize(prizeId, btn){
+  if(btn){btn.disabled=true;btn.innerHTML='...';}
+  try{
+    const r=await api('/api/user/claim-prize','POST',{prize_id:prizeId});
+    if(r.success){
+      Haptic.success();
+      if(r.data){
+        // Show prize details in a popup
+        const lines=[];
+        if(r.data.email) lines.push(`📧 Email: <b>${r.data.email}</b>`);
+        if(r.data.password) lines.push(`🔑 Пароль: <b>${r.data.password}</b>`);
+        if(r.data.promo) lines.push(`🎟️ Промокод: <b>${r.data.promo}</b>`);
+        tg.showAlert(lines.join('\n')||(r.data.text||'Приз получен!'));
+      } else {
+        Toast.success('✅ Приз получен! Проверьте сообщения в боте.');
+      }
+      await loadPrizes();
+    } else {
+      Toast.error(r.error||'Ошибка получения приза');
+      Haptic.error();
+      if(btn){btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>Забрать';}
+    }
+  }catch(e){
+    Toast.error('Ошибка соединения');
+    if(btn){btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>Забрать';}
+  }
+}
+
+function openChId(){
+  const i=document.getElementById('new-gid');if(i)i.value=STATE.user?.game_id||'';openM('m-chid');
+}
+async function saveNewId(){
+  const input=document.getElementById('new-gid'),v=input?.value.trim()??'';
+  if(v.length<CONFIG.MIN_GAME_ID_LEN){input?.classList.add('shake');setTimeout(()=>input?.classList.remove('shake'),500);Haptic.error();Toast.error('Введите корректный ID!');return;}
+  const btn=$('#m-chid .btn-primary');if(btn){btn.disabled=true;btn.textContent='Сохраняем...';}
+  try{
+    const r=await api('/api/user/set-game-id','POST',{game_id:v});
+    if(r.success){setState({user:r.user});closeM('m-chid');Toast.success('✅ Game ID обновлён!');Haptic.success();await loadProf();}
+    else{Toast.error(r.error||'Ошибка');Haptic.error();}
+  }catch(e){Toast.error('Ошибка соединения');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Сохранить';}}
+}
+
+/* ═══ LEADERS ═══ */
+async function loadLeaders(){
+  const el=document.getElementById('leaders-list');if(!el)return;
+  el.innerHTML=Array(5).fill('<div class="skeleton" style="height:66px;border-radius:18px;margin-bottom:8px"></div>').join('');
+  try{
+    const r=await api('/api/leaders','GET',null,true);
+    if(!r.success||!r.leaders?.length){el.innerHTML='<div class="empty-prizes"><div class="empty-prizes-title">Таблица пуста</div></div>';return;}
+    const medals=['🥇','🥈','🥉'];
+    const avStyles=['background:linear-gradient(135deg,#F59E0B,#D97706);box-shadow:0 4px 20px rgba(245,158,11,0.5);','background:linear-gradient(135deg,#94A3B8,#64748B);','background:linear-gradient(135deg,#CD7F32,#8B4513);'];
+    const frag=document.createDocumentFragment();
+    r.leaders.forEach((user,i)=>{
+      const div=document.createElement('div');div.className='litem';div.style.animationDelay=`${i*0.06}s`;
+      const isSelf=user.telegram_id===tg.initDataUnsafe?.user?.id;
+      if(isSelf)div.style.borderColor='rgba(79,111,255,0.4)';
+      div.innerHTML=`<div class="lr">${medals[i]||`#${i+1}`}</div><div class="li-av" style="${avStyles[i]||'background:var(--grad-acc)'}">${(user.first_name||'?').charAt(0).toUpperCase()}</div><div class="li"><div class="li-name">${user.first_name||'Игрок'}${isSelf?' <span style="font-size:9px;color:var(--acc3)">(Вы)</span>':''}</div><div class="li-un">${user.username?'@'+user.username:'ID: '+user.telegram_id}</div></div><div class="lb">${(user.balance||0).toFixed(2)}₽</div>`;
+      frag.appendChild(div);
+    });
+    el.innerHTML='';el.appendChild(frag);
+  }catch(e){el.innerHTML='<div class="empty-prizes"><div class="empty-prizes-title" style="color:var(--red)">Ошибка загрузки</div></div>';}
+}
+
+/* ═══ MODALS ═══ */
+function openM(id){
+  const modal=document.getElementById(id);if(!modal)return;
+  modal.classList.add('active');Haptic.light();
+  const overlay=modal.querySelector('.mo');if(overlay)overlay.onclick=()=>closeM(id);
+  const content=modal.querySelector('.mc');if(!content)return;
+  let startY=0,isDragging=false;
+  content.addEventListener('touchstart',e=>{startY=e.touches[0].clientY;isDragging=true;},{passive:true,once:true});
+  content.addEventListener('touchmove',e=>{if(!isDragging)return;const d=e.touches[0].clientY-startY;if(d>0)content.style.transform=`translateY(${d}px)`;},{passive:true});
+  content.addEventListener('touchend',e=>{isDragging=false;const d=e.changedTouches[0].clientY-startY;if(d>100)closeM(id);else{content.style.transform='';content.style.transition='transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';setTimeout(()=>content.style.transition='',300);}},{passive:true,once:true});
+}
+function closeM(id){
+  const modal=document.getElementById(id);if(!modal)return;
+  const content=modal.querySelector('.mc');
+  if(content){content.style.transform='translateY(110%)';content.style.transition='transform 0.35s cubic-bezier(0.4,0,1,1)';setTimeout(()=>{modal.classList.remove('active');content.style.transform='';content.style.transition='';},350);}
+  else modal.classList.remove('active');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')$$('.modal.active').forEach(m=>closeM(m.id));
+  if(e.key==='Enter'){const m=$('.modal.active');if(m?.id==='m-chid')saveNewId();}
+});
+
+// Shake style
+(()=>{const s=document.createElement('style');s.textContent='@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}.shake input,.shake{animation:shake 0.5s cubic-bezier(0.36,0.07,0.19,0.97);}';document.head.appendChild(s);})();
+
+window.addEventListener('unhandledrejection',e=>console.error('[Unhandled]',e.reason));
+window.addEventListener('error',e=>console.error('[Error]',e.error));
+
+Object.assign(window,{go,spinIt,openM,closeM,saveNewId,openChId,checkConds,doTransfer,claimPrize,loadProf,loadLeaders,selectRouletteType,goToStep2,backToStep1,completeSetup,selectSpinType,setMultiSpin});
+</script>
+</body>
+</html>
