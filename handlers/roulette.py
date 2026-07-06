@@ -9,9 +9,12 @@ from aiogram.types import (
 )
 
 import database as db
-from config import COOLDOWNS, PAID_ROULETTE_PRICE, PRIZE_TRANSFER_DELAY, em, IMG_USER
+from config import COOLDOWNS, PAID_ROULETTE_PRICES, PAID_ROULETTE_DEFAULT_LUCK, PRIZE_TRANSFER_DELAY, em, IMG_USER
 from utils.prizes import spin_roulette, get_roulette_name, get_roulette_emoji, format_prize_list
 from utils.checks import check_subscriptions
+
+# Базовая цена платной рулетки (минимальный уровень удачи = 20% = 50₽)
+PAID_ROULETTE_PRICE = PAID_ROULETTE_PRICES[PAID_ROULETTE_DEFAULT_LUCK]
 
 router = Router()
 

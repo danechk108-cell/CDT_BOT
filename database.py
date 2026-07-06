@@ -89,10 +89,22 @@ async def _create_tables():
                 condition_met_at TIMESTAMP,
                 UNIQUE(user_id, roulette_type)
             );
+            CREATE TABLE IF NOT EXISTS support_tickets (
+                id          BIGSERIAL PRIMARY KEY,
+                user_id     BIGINT REFERENCES users(telegram_id),
+                category    TEXT NOT NULL,
+                message     TEXT NOT NULL,
+                status      TEXT NOT NULL DEFAULT 'open',
+                created_at  TIMESTAMP DEFAULT NOW(),
+                updated_at  TIMESTAMP DEFAULT NOW()
+            );
         """)
-        # Миграция: добавляем roulette_type если колонки ещё нет
+        # Миграции: добавляем колонки если ещё нет
         await c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS roulette_type TEXT")
         await c.execute("ALTER TABLE roulette_spins ADD COLUMN IF NOT EXISTS paid_luck SMALLINT DEFAULT 20")
+        await c.execute("ALTER TABLE prizes ADD COLUMN IF NOT EXISTS prize_value FLOAT DEFAULT 0")
+        await c.execute("ALTER TABLE prizes ADD COLUMN IF NOT EXISTS transferred_to BIGINT")
+        await c.execute("ALTER TABLE prizes ADD COLUMN IF NOT EXISTS transferred_at TIMESTAMP")
         await c.execute("""
             INSERT INTO admins (telegram_id, username, level, added_by)
             VALUES ($1, 'owner', 'head', $1)
@@ -214,7 +226,8 @@ async def add_prize(user_id, prize_type, prize_name, prize_value=0,
 async def get_user_prizes(user_id):
     async with pool.acquire() as c:
         return await c.fetch(
-            "SELECT * FROM prizes WHERE user_id=$1 ORDER BY won_at DESC", user_id)
+            "SELECT * FROM prizes WHERE user_id=$1 AND prize_type != 'nothing' ORDER BY won_at DESC",
+            user_id)
 
 async def get_all_user_prizes_history(user_id):
     """Все призы пользователя за всё время (включая переданные и ничего)."""
@@ -240,7 +253,7 @@ async def transfer_prize(prize_id, to_user_id):
     async with pool.acquire() as c:
         await c.execute("""
             UPDATE prizes
-            SET user_id=$1,transferred_to=$1,transferred_at=NOW()
+            SET user_id=$1, transferred_to=$1, transferred_at=NOW()
             WHERE id=$2
         """, to_user_id, prize_id)
 
@@ -325,3 +338,31 @@ async def get_general_stats():
             "total_balance_given": float(await c.fetchval(
                 "SELECT COALESCE(SUM(prize_value),0) FROM prizes WHERE prize_type='balance'")),
         }
+
+# ── support tickets ────────────────────────────────────────────────────────────
+
+async def create_ticket(user_id, category, message):
+    async with pool.acquire() as c:
+        return await c.fetchrow("""
+            INSERT INTO support_tickets (user_id, category, message)
+            VALUES ($1, $2, $3) RETURNING *
+        """, user_id, category, message)
+
+async def get_user_tickets(user_id):
+    async with pool.acquire() as c:
+        return await c.fetch(
+            "SELECT * FROM support_tickets WHERE user_id=$1 ORDER BY created_at DESC",
+            user_id)
+
+async def get_all_tickets(status=None):
+    async with pool.acquire() as c:
+        if status:
+            return await c.fetch(
+                "SELECT * FROM support_tickets WHERE status=$1 ORDER BY created_at DESC", status)
+        return await c.fetch(
+            "SELECT * FROM support_tickets ORDER BY created_at DESC")
+
+async def close_ticket(ticket_id):
+    async with pool.acquire() as c:
+        await c.execute(
+            "UPDATE support_tickets SET status='closed',updated_at=NOW() WHERE id=$1", ticket_id)

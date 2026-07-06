@@ -141,7 +141,7 @@ async def get_tg_user(init_data: str = None):
         return None
 
 
-def _user_dict(user, prizes_count: int = 0, spin_stats: dict = None) -> dict:
+def _user_dict(user, prizes_count: int = 0, spin_stats: dict = None, is_admin: bool = False, admin_level: str = None) -> dict:
     """Универсальный словарь пользователя для API-ответов"""
     return {
         "telegram_id":   user['telegram_id'],
@@ -154,6 +154,8 @@ def _user_dict(user, prizes_count: int = 0, spin_stats: dict = None) -> dict:
         "is_blocked":    bool(user['is_blocked']),
         "created_at":    user['created_at'].strftime("%d.%m.%Y") if user['created_at'] else None,
         "spin_stats":    spin_stats or {"total": 0, "wins": 0, "biggest": 0},
+        "is_admin":      is_admin,
+        "admin_level":   admin_level,
     }
 
 
@@ -187,7 +189,10 @@ async def api_user_me(request: Request):
 
     prizes     = await db.get_user_prizes(user_id)
     spin_stats = await db.get_user_spin_stats(user_id)
-    return JSONResponse({"success": True, "user": _user_dict(user, len(prizes), spin_stats)})
+    admin_rec  = await db.get_admin(user_id)
+    is_admin   = admin_rec is not None and admin_rec['level'] in ('head', 'admin')
+    admin_lvl  = admin_rec['level'] if admin_rec else None
+    return JSONResponse({"success": True, "user": _user_dict(user, len(prizes), spin_stats, is_admin, admin_lvl)})
 
 
 @app.post("/api/user/set-game-id")
@@ -345,23 +350,16 @@ async def api_spin(request: Request):
     results = []
     rolled_prize = None
 
-    async def _save_and_notify(prize: dict, paid_luck_value: int):
+    async def _save_prize(prize: dict):
+        """Сохраняет приз в БД, возвращает запись и флаг компенсации."""
         prize_rec = None
+        compensated = False
         if prize['type'] == 'balance':
             await db.update_balance(user_id, prize['value'])
             prize_rec = await db.add_prize(
                 user_id, 'balance', prize['name'], prize['value'],
                 is_received=True, received_at=datetime.now(),
             )
-            try:
-                await bot.send_message(
-                    user_id,
-                    f"🎁 <b>Вы выиграли {prize['name']}!</b>\n\n💰 Зачислено на баланс!",
-                    parse_mode="HTML",
-                )
-            except Exception:
-                pass
-
         elif prize['type'] == 'account':
             account = await db.get_free_account()
             if account:
@@ -371,16 +369,13 @@ async def api_spin(request: Request):
                     account_email=account['email'],
                     account_password=account['password'],
                 )
-                try:
-                    await bot.send_message(
-                        user_id,
-                        f"🎮 <b>Вы выиграли аккаунт Tank Blitz!</b>\n\n"
-                        f"Нажмите <b>Забрать</b> в профиле, чтобы получить данные.",
-                        parse_mode="HTML",
-                    )
-                except Exception:
-                    pass
-
+            else:
+                compensated = True
+                await db.update_balance(user_id, 50)
+                prize_rec = await db.add_prize(
+                    user_id, 'balance', 'Компенсация 50₽ (нет аккаунтов)', 50.0,
+                    is_received=True, received_at=datetime.now(),
+                )
         elif prize['type'] == 'gold':
             gold = await db.get_free_gold()
             if gold:
@@ -389,36 +384,14 @@ async def api_spin(request: Request):
                     user_id, 'gold', prize['name'],
                     gold_promo=gold['promo_code'],
                 )
-                try:
-                    await bot.send_message(
-                        user_id,
-                        f"🥇 <b>Вы выиграли Голду Tank Blitz!</b>\n\n"
-                        f"Нажмите <b>Забрать</b> в профиле, чтобы получить промокод.",
-                        parse_mode="HTML",
-                    )
-                except Exception:
-                    pass
-
-        if prize['type'] != 'nothing':
-            admins = await db.get_all_admins()
-            for admin_rec in admins:
-                try:
-                    await bot.send_message(
-                        admin_rec['telegram_id'],
-                        f"🎰 <b>Выигрыш!</b>\n👤 ID: {user_id}\n🎁 Приз: {prize['name']}",
-                        parse_mode="HTML",
-                    )
-                except Exception:
-                    pass
-
-        return {
-            "name":      prize['name'],
-            "type":      prize['type'],
-            "value":     float(prize['value']),
-            "prize_id":  prize_rec['id'] if prize_rec else None,
-            "can_claim": bool(prize_rec and prize['type'] in ('account', 'gold')),
-            "can_transfer": bool(prize_rec and prize['type'] in ('account', 'gold')),
-        }
+            else:
+                compensated = True
+                await db.update_balance(user_id, 25)
+                prize_rec = await db.add_prize(
+                    user_id, 'balance', 'Компенсация 25₽ (нет голды)', 25.0,
+                    is_received=True, received_at=datetime.now(),
+                )
+        return prize_rec, compensated
 
     if roulette_type != 'paid':
         prize = spin_roulette(roulette_type)
@@ -429,7 +402,15 @@ async def api_spin(request: Request):
             is_paid=False,
         )
         await db.set_condition(user_id, roulette_type, False, False)
-        results.append(await _save_and_notify(prize, paid_luck))
+        prize_rec, comp = await _save_prize(prize)
+        results.append({
+            "name":  prize['name'], "type": prize['type'],
+            "value": float(prize['value']),
+            "prize_id":     prize_rec['id'] if prize_rec else None,
+            "can_claim":    bool(prize_rec and prize['type'] in ('account', 'gold') and not comp),
+            "can_transfer": bool(prize_rec and prize['type'] in ('account', 'gold') and not comp),
+            "compensated":  comp,
+        })
     else:
         for _ in range(spin_count):
             prize = spin_roulette("paid", paid_luck)
@@ -439,7 +420,64 @@ async def api_spin(request: Request):
                 prize['name'], prize['type'], prize['value'],
                 is_paid=True, paid_luck=paid_luck,
             )
-            results.append(await _save_and_notify(prize, paid_luck))
+            prize_rec, comp = await _save_prize(prize)
+            results.append({
+                "name":  prize['name'], "type": prize['type'],
+                "value": float(prize['value']),
+                "prize_id":     prize_rec['id'] if prize_rec else None,
+                "can_claim":    bool(prize_rec and prize['type'] in ('account', 'gold') and not comp),
+                "can_transfer": bool(prize_rec and prize['type'] in ('account', 'gold') and not comp),
+                "compensated":  comp,
+            })
+
+    # ── Одно итоговое сообщение пользователю с премиум эмодзи ──────────────────
+    wins = [r for r in results if r['type'] != 'nothing']
+    try:
+        from config import em
+        if wins:
+            lines = []
+            for r in wins:
+                if r['type'] == 'balance':
+                    lines.append(f"{em('money')} <b>{r['name']}</b> — зачислено на баланс")
+                elif r['type'] == 'account':
+                    lines.append(f"{em('robot')} <b>Аккаунт Tank Blitz</b> — нажмите «Забрать» в профиле")
+                elif r['type'] == 'gold':
+                    lines.append(f"{em('star')} <b>Голда Tank Blitz</b> — нажмите «Забрать» в профиле")
+            if spin_count > 1:
+                header = f"{em('trophy')} <b>Результаты {spin_count} прокрутов</b>\n\n"
+            else:
+                header = f"{em('trophy')} <b>Поздравляем!</b>\n\n"
+            await bot.send_message(
+                user_id,
+                header + "\n".join(lines),
+                parse_mode="HTML",
+            )
+        else:
+            if spin_count > 1:
+                msg = f"{em('hmm')} <b>{spin_count} прокрутов</b> — ничего не выиграно. Попробуйте ещё!"
+            else:
+                msg = f"{em('hmm')} <b>Не повезло!</b> Ничего не выиграно. Попробуйте ещё раз!"
+            await bot.send_message(user_id, msg, parse_mode="HTML")
+    except Exception:
+        pass
+
+    # ── Уведомление администраторам одним сообщением ───────────────────────────
+    if wins:
+        try:
+            from config import em as _em
+            prize_lines = "\n".join(f"  • {r['name']}" for r in wins)
+            admin_txt = (
+                f"{_em('bell')} <b>Выигрыш!</b>\n"
+                f"{_em('hand')} ID: {user_id}\n"
+                f"{_em('gift')} Призы ({len(wins)}/{spin_count}):\n{prize_lines}"
+            )
+            for admin_rec in await db.get_all_admins():
+                try:
+                    await bot.send_message(admin_rec['telegram_id'], admin_txt, parse_mode="HTML")
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     updated_user = await db.get_user(user_id)
     first_prize = results[0] if results else {
@@ -641,3 +679,155 @@ async def api_leaders(request: Request):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+# ===== SUPPORT TICKETS =====
+
+TICKET_CATEGORIES = [
+    "Проблема с призом",
+    "Проблема с балансом",
+    "Технический вопрос",
+    "Жалоба",
+    "Другое",
+]
+
+@app.get("/api/support/categories")
+async def api_ticket_categories(request: Request):
+    tg_user = await get_tg_user(request.headers.get('x-telegram-init-data'))
+    if not tg_user:
+        raise HTTPException(401, "Unauthorized")
+    return JSONResponse({"success": True, "categories": TICKET_CATEGORIES})
+
+@app.post("/api/support/create")
+async def api_create_ticket(request: Request):
+    tg_user = await get_tg_user(request.headers.get('x-telegram-init-data'))
+    if not tg_user:
+        raise HTTPException(401, "Unauthorized")
+
+    user_id = tg_user['id']
+    body    = await request.json()
+    category = body.get('category', '').strip()
+    message  = body.get('message', '').strip()
+
+    if not category or category not in TICKET_CATEGORIES:
+        return JSONResponse({"success": False, "error": "Выберите категорию"})
+    if len(message) < 10:
+        return JSONResponse({"success": False, "error": "Опишите проблему подробнее (мин. 10 символов)"})
+    if len(message) > 1000:
+        return JSONResponse({"success": False, "error": "Сообщение слишком длинное (макс. 1000 символов)"})
+
+    ticket = await db.create_ticket(user_id, category, message)
+    user   = await db.get_user(user_id)
+
+    # Уведомляем всех администраторов
+    from config import em
+    who = f"@{user['username']}" if user and user.get('username') else str(user_id)
+    admin_txt = (
+        f"{em('bell')} <b>Новый тикет поддержки #{ticket['id']}</b>\n\n"
+        f"{em('hand')} Пользователь: {who} (ID: {user_id})\n"
+        f"{em('search')} Категория: <b>{category}</b>\n\n"
+        f"{em('hmm')} Сообщение:\n{message}"
+    )
+    for admin_rec in await db.get_all_admins():
+        try:
+            await bot.send_message(admin_rec['telegram_id'], admin_txt, parse_mode="HTML")
+        except Exception:
+            pass
+
+    return JSONResponse({"success": True, "ticket_id": ticket['id']})
+
+@app.get("/api/support/my")
+async def api_my_tickets(request: Request):
+    tg_user = await get_tg_user(request.headers.get('x-telegram-init-data'))
+    if not tg_user:
+        raise HTTPException(401, "Unauthorized")
+    tickets = await db.get_user_tickets(tg_user['id'])
+    result = [
+        {
+            "id":         t['id'],
+            "category":   t['category'],
+            "message":    t['message'],
+            "status":     t['status'],
+            "created_at": t['created_at'].isoformat(),
+        }
+        for t in tickets
+    ]
+    return JSONResponse({"success": True, "tickets": result})
+
+
+# ===== ADMIN PANEL API =====
+
+async def _require_admin(request: Request):
+    tg_user = await get_tg_user(request.headers.get('x-telegram-init-data'))
+    if not tg_user:
+        raise HTTPException(401, "Unauthorized")
+    admin_rec = await db.get_admin(tg_user['id'])
+    if not admin_rec or admin_rec['level'] not in ('head', 'admin'):
+        raise HTTPException(403, "Forbidden")
+    return tg_user, admin_rec
+
+@app.get("/api/admin/stats")
+async def api_admin_stats(request: Request):
+    await _require_admin(request)
+    stats   = await db.get_general_stats()
+    tickets = await db.get_all_tickets('open')
+    return JSONResponse({
+        "success": True,
+        "stats": stats,
+        "open_tickets": len(tickets),
+    })
+
+@app.get("/api/admin/tickets")
+async def api_admin_tickets(request: Request):
+    await _require_admin(request)
+    tickets = await db.get_all_tickets()
+    result = [
+        {
+            "id":         t['id'],
+            "user_id":    t['user_id'],
+            "category":   t['category'],
+            "message":    t['message'],
+            "status":     t['status'],
+            "created_at": t['created_at'].isoformat(),
+        }
+        for t in tickets
+    ]
+    return JSONResponse({"success": True, "tickets": result})
+
+@app.post("/api/admin/ticket/close")
+async def api_admin_close_ticket(request: Request):
+    await _require_admin(request)
+    body = await request.json()
+    tid  = body.get('ticket_id')
+    if not tid:
+        return JSONResponse({"success": False, "error": "ticket_id required"})
+    await db.close_ticket(tid)
+    return JSONResponse({"success": True})
+
+@app.get("/api/admin/users")
+async def api_admin_users(request: Request):
+    await _require_admin(request)
+    users = await db.get_all_users()
+    result = [
+        {
+            "telegram_id": u['telegram_id'],
+            "username":    u['username'],
+            "first_name":  u['first_name'],
+            "balance":     float(u['balance']),
+            "is_blocked":  bool(u['is_blocked']),
+            "created_at":  u['created_at'].isoformat() if u['created_at'] else None,
+        }
+        for u in users[:50]
+    ]
+    return JSONResponse({"success": True, "users": result})
+
+@app.post("/api/admin/user/block")
+async def api_admin_block(request: Request):
+    tg_user, _ = await _require_admin(request)
+    body   = await request.json()
+    target = body.get('telegram_id')
+    block  = body.get('block', True)
+    if not target:
+        return JSONResponse({"success": False, "error": "telegram_id required"})
+    await db.block_user(int(target), block)
+    return JSONResponse({"success": True})
