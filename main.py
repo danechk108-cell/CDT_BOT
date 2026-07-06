@@ -744,11 +744,13 @@ async def api_my_tickets(request: Request):
     tickets = await db.get_user_tickets(tg_user['id'])
     result = [
         {
-            "id":         t['id'],
-            "category":   t['category'],
-            "message":    t['message'],
-            "status":     t['status'],
-            "created_at": t['created_at'].isoformat(),
+            "id":          t['id'],
+            "category":    t['category'],
+            "message":     t['message'],
+            "status":      t['status'],
+            "admin_reply": t['admin_reply'] if 'admin_reply' in t.keys() else None,
+            "replied_at":  t['replied_at'].isoformat() if t.get('replied_at') else None,
+            "created_at":  t['created_at'].isoformat(),
         }
         for t in tickets
     ]
@@ -783,12 +785,13 @@ async def api_admin_tickets(request: Request):
     tickets = await db.get_all_tickets()
     result = [
         {
-            "id":         t['id'],
-            "user_id":    t['user_id'],
-            "category":   t['category'],
-            "message":    t['message'],
-            "status":     t['status'],
-            "created_at": t['created_at'].isoformat(),
+            "id":          t['id'],
+            "user_id":     t['user_id'],
+            "category":    t['category'],
+            "message":     t['message'],
+            "status":      t['status'],
+            "admin_reply": t['admin_reply'] if 'admin_reply' in t.keys() else None,
+            "created_at":  t['created_at'].isoformat(),
         }
         for t in tickets
     ]
@@ -831,3 +834,134 @@ async def api_admin_block(request: Request):
         return JSONResponse({"success": False, "error": "telegram_id required"})
     await db.block_user(int(target), block)
     return JSONResponse({"success": True})
+
+
+@app.post("/api/admin/user/balance")
+async def api_admin_balance(request: Request):
+    tg_user, _ = await _require_admin(request)
+    body   = await request.json()
+    target = body.get('telegram_id')
+    amount = body.get('amount')
+    if not target or amount is None:
+        return JSONResponse({"success": False, "error": "telegram_id и amount обязательны"})
+    await db.update_balance(int(target), float(amount))
+    user = await db.get_user(int(target))
+    if not user:
+        return JSONResponse({"success": False, "error": "Пользователь не найден"})
+    try:
+        from config import em
+        sign = '+' if float(amount) >= 0 else ''
+        await bot.send_message(
+            int(target),
+            f"{em('cash')} Ваш баланс изменён администратором: <b>{sign}{float(amount):.2f}₽</b>\n"
+            f"{em('wallet')} Новый баланс: <b>{float(user['balance']):.2f}₽</b>",
+            parse_mode="HTML",
+        )
+    except Exception:
+        pass
+    return JSONResponse({"success": True, "new_balance": float(user['balance'])})
+
+
+@app.post("/api/admin/user/give-prize")
+async def api_admin_give_prize(request: Request):
+    tg_user, admin_rec = await _require_admin(request)
+    body       = await request.json()
+    target_id  = body.get('telegram_id')
+    prize_type = body.get('prize_type')  # 'account' or 'gold'
+    if not target_id or prize_type not in ('account', 'gold'):
+        return JSONResponse({"success": False, "error": "Неверные параметры"})
+    target = await db.get_user(int(target_id))
+    if not target:
+        return JSONResponse({"success": False, "error": "Пользователь не найден"})
+    prize_rec = None
+    if prize_type == 'account':
+        account = await db.get_free_account()
+        if not account:
+            return JSONResponse({"success": False, "error": "Нет аккаунтов в пуле"})
+        await db.use_account(account['id'], int(target_id))
+        prize_rec = await db.add_prize(
+            int(target_id), 'account', 'Аккаунт Tank Blitz',
+            account_email=account['email'], account_password=account['password'],
+        )
+    else:
+        gold = await db.get_free_gold()
+        if not gold:
+            return JSONResponse({"success": False, "error": "Нет промокодов в пуле"})
+        await db.use_gold(gold['id'], int(target_id))
+        prize_rec = await db.add_prize(
+            int(target_id), 'gold', 'Голда Tank Blitz',
+            gold_promo=gold['promo_code'],
+        )
+    try:
+        from config import em
+        await bot.send_message(
+            int(target_id),
+            f"{em('gift')} Администратор выдал вам приз: <b>{'Аккаунт Tank Blitz' if prize_type=='account' else 'Голда Tank Blitz'}</b>!\n"
+            f"Нажмите «Забрать» в профиле.",
+            parse_mode="HTML",
+        )
+    except Exception:
+        pass
+    return JSONResponse({"success": True, "prize_id": prize_rec['id'] if prize_rec else None})
+
+
+@app.post("/api/admin/user/remove-prize")
+async def api_admin_remove_prize(request: Request):
+    tg_user, _ = await _require_admin(request)
+    body     = await request.json()
+    prize_id = body.get('prize_id')
+    if not prize_id:
+        return JSONResponse({"success": False, "error": "prize_id обязателен"})
+    prize = await db.get_prize(prize_id)
+    if not prize:
+        return JSONResponse({"success": False, "error": "Приз не найден"})
+    await db.remove_prize(prize_id)
+    return JSONResponse({"success": True})
+
+
+@app.post("/api/admin/ticket/reply")
+async def api_admin_reply_ticket(request: Request):
+    tg_user, admin_rec = await _require_admin(request)
+    body  = await request.json()
+    tid   = body.get('ticket_id')
+    reply = body.get('reply', '').strip()
+    if not tid or not reply:
+        return JSONResponse({"success": False, "error": "ticket_id и reply обязательны"})
+    ticket = await db.reply_ticket(int(tid), tg_user['id'], reply)
+    if not ticket:
+        return JSONResponse({"success": False, "error": "Тикет не найден"})
+    # Уведомляем пользователя в боте
+    try:
+        from config import em
+        await bot.send_message(
+            ticket['user_id'],
+            f"{em('bell')} <b>Ответ поддержки на тикет #{tid}</b>\n\n"
+            f"{em('check')} {reply}",
+            parse_mode="HTML",
+        )
+    except Exception:
+        pass
+    return JSONResponse({"success": True})
+
+
+@app.post("/api/admin/broadcast")
+async def api_admin_broadcast(request: Request):
+    tg_user, admin_rec = await _require_admin(request)
+    body = await request.json()
+    text = body.get('text', '').strip()
+    if not text:
+        return JSONResponse({"success": False, "error": "Текст рассылки не может быть пустым"})
+    if len(text) > 4096:
+        return JSONResponse({"success": False, "error": "Текст слишком длинный (макс. 4096 символов)"})
+    users = await db.get_all_users()
+    sent = 0
+    failed = 0
+    for u in users:
+        if u['is_blocked']:
+            continue
+        try:
+            await bot.send_message(u['telegram_id'], text, parse_mode="HTML")
+            sent += 1
+        except Exception:
+            failed += 1
+    return JSONResponse({"success": True, "sent": sent, "failed": failed})

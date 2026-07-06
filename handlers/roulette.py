@@ -9,8 +9,15 @@ from aiogram.types import (
 )
 
 import database as db
-from config import COOLDOWNS, PAID_ROULETTE_PRICES, PAID_ROULETTE_DEFAULT_LUCK, PRIZE_TRANSFER_DELAY, em, IMG_USER
-from utils.prizes import spin_roulette, get_roulette_name, get_roulette_emoji, format_prize_list
+from config import (
+    COOLDOWNS,
+    PAID_ROULETTE_LEVELS, PAID_ROULETTE_PRICES, PAID_ROULETTE_DEFAULT_LUCK,
+    PRIZE_TRANSFER_DELAY, em, IMG_USER,
+)
+from utils.prizes import (
+    spin_roulette, get_roulette_name, get_roulette_emoji,
+    format_prize_list, normalize_paid_luck, get_paid_price,
+)
 from utils.checks import check_subscriptions
 
 # Базовая цена платной рулетки (минимальный уровень удачи = 20% = 50₽)
@@ -22,11 +29,12 @@ router = Router()
 # ── keyboards ──────────────────────────────────────────────────────────────────
 
 def roulette_menu_kb():
+    base_price = PAID_ROULETTE_PRICES[PAID_ROULETTE_DEFAULT_LUCK]
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎯 Ежедневная",     callback_data="rt_day")],
-        [InlineKeyboardButton(text="🎲 Каждые 3 дня",   callback_data="rt_three_days")],
-        [InlineKeyboardButton(text="🏆 Еженедельная",    callback_data="rt_week")],
-        [InlineKeyboardButton(text="💎 Платная · 150₽", callback_data="rt_paid")],
+        [InlineKeyboardButton(text="🎯 Ежедневная",                   callback_data="rt_day")],
+        [InlineKeyboardButton(text="🎲 Каждые 3 дня",                  callback_data="rt_three_days")],
+        [InlineKeyboardButton(text="🏆 Еженедельная",                   callback_data="rt_week")],
+        [InlineKeyboardButton(text=f"💎 Платная · от {base_price}₽",  callback_data="rt_paid")],
     ])
 
 
@@ -351,23 +359,30 @@ async def choose_roulette(cb: CallbackQuery, bot: Bot):
 
     # Платная рулетка
     if rt == "paid":
-        bal = float(u["balance"])
-        can = bal >= PAID_ROULETTE_PRICE
-        kb  = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(
-                text="💎 Крутить за 150₽" if can else "💳 Пополнить баланс",
-                callback_data="paid_confirm" if can else "topup",
-            )],
-            [InlineKeyboardButton(text="◀️ Назад", callback_data="menu_roulette")],
-        ])
+        bal        = float(u["balance"])
+        base_price = PAID_ROULETTE_PRICES[PAID_ROULETTE_DEFAULT_LUCK]
+        # Кнопки уровней удачи
+        luck_rows = []
+        for lvl in PAID_ROULETTE_LEVELS:
+            price   = PAID_ROULETTE_PRICES[lvl]
+            can_lvl = bal >= price
+            icon    = "💎" if can_lvl else "🔒"
+            luck_rows.append([InlineKeyboardButton(
+                text=f"{icon} {lvl}% удачи — {price}₽",
+                callback_data=f"paid_luck_{lvl}" if can_lvl else "topup",
+            )])
+        luck_rows.append([InlineKeyboardButton(text="◀️ Назад", callback_data="menu_roulette")])
+        prizes_txt = format_prize_list("paid")
         try:
             await cb.message.edit_caption(
                 caption=(
                     f'{em("star")} <b>Платная рулетка</b>\n\n'
-                    f'{em("money")} Баланс: <b>{bal:.2f}₽</b> / нужно <b>150₽</b>\n\n'
-                    f'🎁 Призы:\n{format_prize_list("paid")}'
+                    f'{em("money")} Ваш баланс: <b>{bal:.2f}₽</b>\n\n'
+                    f'<b>Выберите уровень удачи:</b>\n'
+                    f'<i>Чем выше %, тем выше шанс на аккаунт/голду</i>\n\n'
+                    f'🎁 Призы:\n{prizes_txt}'
                 ),
-                reply_markup=kb,
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=luck_rows),
                 parse_mode="HTML",
             )
         except Exception:
@@ -584,15 +599,40 @@ async def do_spin(cb: CallbackQuery, bot: Bot):
 
 # ── paid roulette ──────────────────────────────────────────────────────────────
 
-@router.callback_query(F.data == "paid_confirm")
-async def paid_confirm(cb: CallbackQuery):
+@router.callback_query(F.data.startswith("paid_luck_"))
+async def paid_luck_select(cb: CallbackQuery):
+    """Выбор уровня удачи через кнопку в боте."""
+    try:
+        luck = int(cb.data.replace("paid_luck_", ""))
+    except ValueError:
+        return await cb.answer("❌ Ошибка", show_alert=True)
+
+    luck  = normalize_paid_luck(luck)
+    price = get_paid_price(luck)
+    uid   = cb.from_user.id
+    u     = await db.get_user(uid)
+    bal   = float(u["balance"])
+
+    if bal < price:
+        return await cb.answer(f"❌ Недостаточно средств! Нужно {price}₽", show_alert=True)
+
+    prizes_txt = format_prize_list("paid", luck)
     try:
         await cb.message.edit_caption(
-            caption=f'{em("warn")} Потратить <b>150₽</b> на прокрут?',
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
-                InlineKeyboardButton(text="✅ Да, крутить!", callback_data="spin_paid"),
-                InlineKeyboardButton(text="❌ Отмена",       callback_data="rt_paid"),
-            ]]),
+            caption=(
+                f'{em("star")} <b>Платная рулетка</b>\n\n'
+                f'{em("money")} Баланс: <b>{bal:.2f}₽</b>\n'
+                f'🍀 Уровень удачи: <b>{luck}%</b>\n'
+                f'💰 Стоимость: <b>{price}₽</b>\n\n'
+                f'🎁 Призы (с учётом удачи):\n{prizes_txt}'
+            ),
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(
+                    text=f"🎰 Крутить за {price}₽",
+                    callback_data=f"spin_paid_{luck}",
+                )],
+                [InlineKeyboardButton(text="◀️ Назад к выбору удачи", callback_data="rt_paid")],
+            ]),
             parse_mode="HTML",
         )
     except Exception:
@@ -618,21 +658,26 @@ async def topup(cb: CallbackQuery):
     await cb.answer()
 
 
-@router.callback_query(F.data == "spin_paid")
+@router.callback_query(F.data.startswith("spin_paid"))
 async def spin_paid(cb: CallbackQuery, bot: Bot):
-    uid = cb.from_user.id
-    u   = await db.get_user(uid)
+    uid  = cb.from_user.id
+    u    = await db.get_user(uid)
 
-    if float(u["balance"]) < PAID_ROULETTE_PRICE:
-        return await cb.answer("❌ Недостаточно средств!", show_alert=True)
+    # "spin_paid" (старый) или "spin_paid_{luck}"
+    raw  = cb.data.replace("spin_paid", "").strip("_")
+    luck = normalize_paid_luck(int(raw) if raw.isdigit() else PAID_ROULETTE_DEFAULT_LUCK)
+    price = get_paid_price(luck)
 
-    await db.update_balance(uid, -PAID_ROULETTE_PRICE)
+    if float(u["balance"]) < price:
+        return await cb.answer(f"❌ Недостаточно средств! Нужно {price}₽", show_alert=True)
+
+    await db.update_balance(uid, -price)
 
     try:
         await cb.message.edit_caption(
             caption=(
-                f'{em("rocket")} <b>Крутим платную рулетку...</b>\n\n'
-                f'🎲 Определяем приз...'
+                f'{em("rocket")} <b>Крутим рулетку...</b>\n\n'
+                f'🍀 Удача: <b>{luck}%</b> · 🎲 Определяем приз...'
             ),
             parse_mode="HTML",
         )
@@ -642,8 +687,8 @@ async def spin_paid(cb: CallbackQuery, bot: Bot):
 
     await asyncio.sleep(2)
 
-    prize = spin_roulette("paid")
-    await db.add_spin(uid, "paid", prize["name"], prize["type"], prize["value"], is_paid=True)
+    prize = spin_roulette("paid", luck)
+    await db.add_spin(uid, "paid", prize["name"], prize["type"], prize["value"], is_paid=True, paid_luck=luck)
     prize_text, extra_rows = await _apply(uid, prize, bot)
     uu = await db.get_user(uid)
 

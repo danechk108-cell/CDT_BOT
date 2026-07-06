@@ -9,8 +9,9 @@ DATABASE_URL = os.getenv(
 )
 
 REQUIRED_CHANNELS = [
-    {"id": "@CodeTMG",          "url": "https://t.me/CodeTMG",          "title": "CodeTMG"},
+    {"id": "@hilonchennel",     "url": "https://t.me/hilonchennel",     "title": "HilonChannel"},
     {"id": "@SuperStarsChanell","url": "https://t.me/SuperStarsChanell","title": "SuperStars"},
+    {"id": "@CeedRoulet",       "url": "https://t.me/CeedRoulet",       "title": "CeedRoulet"},
 ]
 
 PRIZES = {
@@ -124,5 +125,5 @@ def em(key: str) -> str:
     fb  = PE_FALLBACK.get(key, "⭐")
     return f'<tg-emoji emoji-id="{eid}">{fb}</tg-emoji>'
 
-IMG_USER  = "https://i.postimg.cc/NMt62Q8t/flux-2-pro-a-Pomenaj-mad-max-na-F.jpg"
-IMG_ADMIN = "https://i.postimg.cc/sgvK5LsP/image-39904039-706d-4dd6-9e75-c86001ecf24a.jpg"
+IMG_USER  = "https://i.postimg.cc/Rhj1Z3zj/5359573969834547905.jpg"
+IMG_ADMIN = "https://i.postimg.cc/Rhj1Z3zj/5359573969834547905.jpg"

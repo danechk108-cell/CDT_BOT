@@ -105,6 +105,9 @@ async def _create_tables():
         await c.execute("ALTER TABLE prizes ADD COLUMN IF NOT EXISTS prize_value FLOAT DEFAULT 0")
         await c.execute("ALTER TABLE prizes ADD COLUMN IF NOT EXISTS transferred_to BIGINT")
         await c.execute("ALTER TABLE prizes ADD COLUMN IF NOT EXISTS transferred_at TIMESTAMP")
+        await c.execute("ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS admin_reply TEXT")
+        await c.execute("ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS replied_by BIGINT")
+        await c.execute("ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS replied_at TIMESTAMP")
         await c.execute("""
             INSERT INTO admins (telegram_id, username, level, added_by)
             VALUES ($1, 'owner', 'head', $1)
@@ -366,3 +369,11 @@ async def close_ticket(ticket_id):
     async with pool.acquire() as c:
         await c.execute(
             "UPDATE support_tickets SET status='closed',updated_at=NOW() WHERE id=$1", ticket_id)
+
+async def reply_ticket(ticket_id, admin_id, reply_text):
+    async with pool.acquire() as c:
+        return await c.fetchrow("""
+            UPDATE support_tickets
+            SET admin_reply=$1, replied_by=$2, replied_at=NOW(), status='closed', updated_at=NOW()
+            WHERE id=$3 RETURNING *
+        """, reply_text, admin_id, ticket_id)
