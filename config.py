@@ -44,12 +44,28 @@ PRIZES = {
         {"name": "25₽ на баланс", "type": "balance", "value": 25.0, "chance": 30},
         {"name": "15₽ на баланс", "type": "balance", "value": 15.0, "chance": 40},
     ],
+    # Базовые призы для «Все или ничего» (тип приза подставляется динамически)
+    "all_or_nothing_account": [
+        {"name": "Ничего", "type": "nothing", "value": 0, "chance": 20},
+        {"name": "Ничего", "type": "nothing", "value": 0, "chance": 20},
+        {"name": "Ничего", "type": "nothing", "value": 0, "chance": 20},
+        {"name": "Ничего", "type": "nothing", "value": 0, "chance": 20},
+        {"name": "Аккаунт", "type": "account", "value": 0, "chance": 20},
+    ],
+    "all_or_nothing_gold": [
+        {"name": "Ничего", "type": "nothing", "value": 0, "chance": 20},
+        {"name": "Ничего", "type": "nothing", "value": 0, "chance": 20},
+        {"name": "Ничего", "type": "nothing", "value": 0, "chance": 20},
+        {"name": "Ничего", "type": "nothing", "value": 0, "chance": 20},
+        {"name": "Голда",  "type": "gold",    "value": 0, "chance": 20},
+    ],
 }
 
 COOLDOWNS = {
-    "day":        86400,
-    "three_days": 259200,
-    "week":       604800,
+    "day":              86400,
+    "three_days":       259200,
+    "week":             604800,
+    "all_or_nothing":   86400,
 }
 
 PAID_ROULETTE_LEVELS = [20, 30, 40, 50, 60, 70]

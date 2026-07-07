@@ -35,6 +35,7 @@ def roulette_menu_kb():
         [InlineKeyboardButton(text="🎲 Каждые 3 дня",                  callback_data="rt_three_days")],
         [InlineKeyboardButton(text="🏆 Еженедельная",                   callback_data="rt_week")],
         [InlineKeyboardButton(text=f"💎 Платная · от {base_price}₽",  callback_data="rt_paid")],
+        [InlineKeyboardButton(text="🎲 Все или ничего",                callback_data="rt_all_or_nothing")],
     ])
 
 
@@ -336,7 +337,8 @@ async def menu_roulette(cb: CallbackQuery):
                 f'{em("star")} <b>Выберите тип рулетки</b>\n\n'
                 f'{em("money")} Баланс: <b>{bal:.2f}₽</b>\n\n'
                 f'🎯 Ежедневная  •  🎲 3 дня\n'
-                f'🏆 Неделя  •  💎 Платная'
+                f'🏆 Неделя  •  💎 Платная\n'
+                f'🎲 Все или ничего'
             ),
             reply_markup=roulette_menu_kb(),
             parse_mode="HTML",
@@ -356,6 +358,69 @@ async def choose_roulette(cb: CallbackQuery, bot: Bot):
 
     if not u or u["is_blocked"]:
         return await cb.answer("❌ Доступ запрещён", show_alert=True)
+
+    # «Все или ничего» — платная (200₽), без условий
+    if rt == "all_or_nothing":
+        can_spin, left = await _cooldown(uid, rt)
+        bal = float(u["balance"])
+
+        if not can_spin:
+            try:
+                await cb.message.edit_caption(
+                    caption=(
+                        f'🎲 <b>Все или ничего</b>\n\n'
+                        f'⏳ Следующий прокрут через: <b>{_fmt(left)}</b>\n\n'
+                        f'🎁 Призы:\n'
+                        f'  • Ничего — 80%\n'
+                        f'  • Голда или Аккаунт — 20%\n'
+                        f'<i>(на ваш выбор)</i>'
+                    ),
+                    reply_markup=back_roulette_kb(),
+                    parse_mode="HTML",
+                )
+            except Exception:
+                pass
+            return await cb.answer()
+
+        if bal < 200:
+            try:
+                await cb.message.edit_caption(
+                    caption=(
+                        f'🎲 <b>Все или ничего</b>\n\n'
+                        f'{em("money")} Баланс: <b>{bal:.2f}₽</b>\n'
+                        f'💰 Стоимость: <b>200₽</b>\n\n'
+                        f'❌ Недостаточно средств!'
+                    ),
+                    reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                        [InlineKeyboardButton(text="◀️ Назад", callback_data="menu_roulette")],
+                    ]),
+                    parse_mode="HTML",
+                )
+            except Exception:
+                pass
+            return await cb.answer()
+
+        try:
+            await cb.message.edit_caption(
+                caption=(
+                    f'🎲 <b>Все или ничего</b>\n\n'
+                    f'{em("money")} Баланс: <b>{bal:.2f}₽</b>\n'
+                    f'💰 Стоимость: <b>200₽</b>\n\n'
+                    f'<b>Выберите, что хотите выиграть:</b>\n\n'
+                    f'  • <b>Голда</b> — 20% шанс\n'
+                    f'  • <b>Аккаунт</b> — 20% шанс\n'
+                    f'  • Ничего — 80% шанс'
+                ),
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="🥇 Голда",    callback_data="aon_pick_gold")],
+                    [InlineKeyboardButton(text="🤖 Аккаунт", callback_data="aon_pick_account")],
+                    [InlineKeyboardButton(text="◀️ Назад",   callback_data="menu_roulette")],
+                ]),
+                parse_mode="HTML",
+            )
+        except Exception:
+            pass
+        return await cb.answer()
 
     # Платная рулетка
     if rt == "paid":
@@ -533,7 +598,7 @@ async def confirm_fwd(cb: CallbackQuery):
 
 # ── do spin ────────────────────────────────────────────────────────────────────
 
-@router.callback_query(F.data.startswith("spin_"))
+@router.callback_query(F.data.startswith("spin_") & ~F.data.startswith("spin_paid") & ~F.data.startswith("spin_aon_"))
 async def do_spin(cb: CallbackQuery, bot: Bot):
     rt  = cb.data[5:]
     uid = cb.from_user.id
@@ -705,6 +770,114 @@ async def spin_paid(cb: CallbackQuery, bot: Bot):
             f'Вы выиграли: <b>{prize["name"]}</b>\n\n'
             f'{prize_text}\n\n'
             f'{em("money")} Баланс: <b>{uu["balance"]:.2f}₽</b>'
+        )
+        kb_rows = extra_rows
+
+    kb_rows += back_roulette_kb().inline_keyboard
+
+    try:
+        await cb.message.edit_caption(
+            caption=caption,
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=kb_rows),
+            parse_mode="HTML",
+        )
+    except Exception:
+        pass
+
+
+# ── all or nothing ─────────────────────────────────────────────────────────────
+
+@router.callback_query(F.data.startswith("aon_pick_"))
+async def aon_pick(cb: CallbackQuery, bot: Bot):
+    """Пользователь выбрал тип приза (gold / account) для «Все или ничего»."""
+    prize_type = cb.data.replace("aon_pick_", "")  # "gold" или "account"
+    uid = cb.from_user.id
+    u   = await db.get_user(uid)
+
+    can_spin, left = await _cooldown(uid, "all_or_nothing")
+    if not can_spin:
+        return await cb.answer(f"⏳ Через {_fmt(left)}", show_alert=True)
+
+    if float(u["balance"]) < 200:
+        return await cb.answer("❌ Недостаточно средств! Нужно 200₽", show_alert=True)
+
+    prize_label = "Голда" if prize_type == "gold" else "Аккаунт"
+    spin_cb     = f"spin_aon_{prize_type}"
+
+    try:
+        await cb.message.edit_caption(
+            caption=(
+                f'🎲 <b>Все или ничего</b>\n\n'
+                f'Ваш выбор: <b>{prize_label}</b>\n\n'
+                f'  • {prize_label} — 20% шанс\n'
+                f'  • Ничего — 80% шанс\n\n'
+                f'Нажмите <b>«КРУТИТЬ!»</b> для запуска.'
+            ),
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🎰 КРУТИТЬ!", callback_data=spin_cb)],
+                [InlineKeyboardButton(text="◀️ Назад",   callback_data="rt_all_or_nothing")],
+            ]),
+            parse_mode="HTML",
+        )
+    except Exception:
+        pass
+    await cb.answer()
+
+
+@router.callback_query(F.data.startswith("spin_aon_"))
+async def spin_aon(cb: CallbackQuery, bot: Bot):
+    """Кручение рулетки «Все или ничего»."""
+    prize_type = cb.data.replace("spin_aon_", "")  # "gold" или "account"
+    uid = cb.from_user.id
+    rt  = "all_or_nothing"
+    u   = await db.get_user(uid)
+
+    can, left = await _cooldown(uid, rt)
+    if not can:
+        return await cb.answer(f"⏳ Через {_fmt(left)}", show_alert=True)
+
+    if float(u["balance"]) < 200:
+        return await cb.answer("❌ Недостаточно средств! Нужно 200₽", show_alert=True)
+
+    await db.update_balance(uid, -200)
+
+    try:
+        await cb.message.edit_caption(
+            caption=(
+                f'{em("rocket")} <b>Крутим рулетку...</b>\n\n'
+                f'🎲 Определяем приз...'
+            ),
+            parse_mode="HTML",
+        )
+    except Exception:
+        pass
+    await cb.answer()
+
+    await asyncio.sleep(2)
+
+    roulette_key = f"all_or_nothing_{prize_type}"
+    prize = spin_roulette(roulette_key)
+    await db.add_spin(uid, rt, prize["name"], prize["type"], prize["value"], is_paid=True)
+    prize_text, extra_rows = await _apply(uid, prize, bot)
+    uu = await db.get_user(uid)
+
+    nxt = datetime.now() + timedelta(seconds=COOLDOWNS.get(rt, 86400))
+
+    if prize["type"] == "nothing":
+        caption = (
+            f'😔 <b>Не повезло в этот раз!</b>\n\n'
+            f'Ничего не выпало. Попробуй позже!\n\n'
+            f'{em("money")} Баланс: <b>{uu["balance"]:.2f}₽</b>\n'
+            f'⏰ Следующий прокрут: <b>{nxt.strftime("%d.%m в %H:%M")}</b>'
+        )
+        kb_rows = []
+    else:
+        caption = (
+            f'🎉 <b>Поздравляем!</b>\n\n'
+            f'Вы выиграли: <b>{prize["name"]}</b>\n\n'
+            f'{prize_text}\n\n'
+            f'{em("money")} Баланс: <b>{uu["balance"]:.2f}₽</b>\n'
+            f'⏰ Следующий прокрут: <b>{nxt.strftime("%d.%m в %H:%M")}</b>'
         )
         kb_rows = extra_rows
 

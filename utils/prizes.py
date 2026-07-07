@@ -82,14 +82,21 @@ def get_roulette_name(t: str, luck: int | str | None = None) -> str:
         return f"💎 Платная · {luck_value}% / {get_paid_price(luck_value)}₽"
 
     return {
-        "day":        "🎯 Ежедневная",
-        "three_days": "🎲 Каждые 3 дня",
-        "week":       "🏆 Еженедельная",
+        "day":             "🎯 Ежедневная",
+        "three_days":      "🎲 Каждые 3 дня",
+        "week":            "🏆 Еженедельная",
+        "all_or_nothing":  "🎲 Все или ничего",
     }.get(t, t)
 
 
 def get_roulette_emoji(t: str) -> str:
-    return {"day": "🎯", "three_days": "🎲", "week": "🏆", "paid": "💎"}.get(t, "🎰")
+    return {
+        "day":            "🎯",
+        "three_days":     "🎲",
+        "week":           "🏆",
+        "paid":           "💎",
+        "all_or_nothing": "🎲",
+    }.get(t, "🎰")
 
 
 def format_prize_list(t: str, luck: int | str | None = None) -> str:

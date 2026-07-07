@@ -241,6 +241,24 @@ async def api_roulette_status(request: Request, type: str = "day", luck: int | N
 
     user_id = tg_user['id']
 
+    if type == 'all_or_nothing':
+        user = await db.get_user(user_id)
+        last_spin     = await db.get_last_spin(user_id, type)
+        cooldown_secs = 0
+        if last_spin:
+            cooldown  = COOLDOWNS.get(type, 86400)
+            next_spin = last_spin['spun_at'] + timedelta(seconds=cooldown)
+            now       = datetime.now()
+            if now < next_spin:
+                cooldown_secs = int((next_spin - now).total_seconds())
+        return JSONResponse({
+            "success": True,
+            "cooldown": cooldown_secs,
+            "conditions_met": float(user['balance']) >= 200,
+            "balance": float(user['balance']),
+            "prizes": build_roulette_prizes("all_or_nothing_gold"),
+        })
+
     if type != 'paid':
         last_spin    = await db.get_last_spin(user_id, type)
         cooldown_secs = 0
@@ -323,10 +341,22 @@ async def api_spin(request: Request):
     roulette_type = body.get('type', 'day')
     paid_luck     = normalize_paid_luck(body.get('luck'))
     spin_count    = normalize_paid_count(body.get('count')) if roulette_type == 'paid' else 1
+    prize_choice  = body.get('prize_choice', 'gold')  # для all_or_nothing: 'gold' или 'account'
     price_one     = None
     total_price   = 0
 
-    if roulette_type != 'paid':
+    if roulette_type == 'all_or_nothing':
+        last_spin = await db.get_last_spin(user_id, roulette_type)
+        if last_spin:
+            cooldown  = COOLDOWNS.get(roulette_type, 86400)
+            next_spin = last_spin['spun_at'] + timedelta(seconds=cooldown)
+            if datetime.now() < next_spin:
+                return JSONResponse({"success": False, "error": "Кулдаун не прошёл"})
+        if float(user['balance']) < 200:
+            return JSONResponse({"success": False, "error": "Недостаточно средств. Нужно 200₽"})
+        await db.update_balance(user_id, -200)
+
+    elif roulette_type != 'paid':
         if body.get("count") not in (None, 1, "1"):
             return JSONResponse({"success": False, "error": "Множественное открытие доступно только для платной рулетки"})
         last_spin = await db.get_last_spin(user_id, roulette_type)
@@ -394,7 +424,8 @@ async def api_spin(request: Request):
         return prize_rec, compensated
 
     if roulette_type != 'paid':
-        prize = spin_roulette(roulette_type)
+        spin_key = f"all_or_nothing_{prize_choice}" if roulette_type == 'all_or_nothing' else roulette_type
+        prize = spin_roulette(spin_key)
         rolled_prize = prize
         await db.add_spin(
             user_id, roulette_type,
@@ -965,3 +996,70 @@ async def api_admin_broadcast(request: Request):
         except Exception:
             failed += 1
     return JSONResponse({"success": True, "sent": sent, "failed": failed})
+
+
+# ===== ADMIN MANAGEMENT (head only) =====
+
+async def _require_head(request: Request):
+    tg_user, admin_rec = await _require_admin(request)
+    if admin_rec['level'] != 'head':
+        raise HTTPException(403, "Only head admin can manage admins")
+    return tg_user, admin_rec
+
+
+@app.get("/api/admin/admins")
+async def api_admin_list_admins(request: Request):
+    await _require_head(request)
+    admins = await db.get_all_admins()
+    result = [
+        {
+            "telegram_id": a['telegram_id'],
+            "level":       a['level'],
+            "username":    a.get('username'),
+            "first_name":  a.get('first_name'),
+        }
+        for a in admins
+    ]
+    return JSONResponse({"success": True, "admins": result})
+
+
+@app.post("/api/admin/admin/add")
+async def api_admin_add(request: Request):
+    tg_user, _ = await _require_head(request)
+    body = await request.json()
+    tid   = body.get('telegram_id')
+    level = body.get('level', 'admin')
+    if not tid:
+        return JSONResponse({"success": False, "error": "telegram_id обязателен"})
+    if level not in ('admin', 'head'):
+        return JSONResponse({"success": False, "error": "level должен быть admin или head"})
+    username = body.get('username') or None
+    await db.add_admin(int(tid), username, level, tg_user['id'])
+    return JSONResponse({"success": True})
+
+
+@app.post("/api/admin/admin/update")
+async def api_admin_update(request: Request):
+    tg_user, _ = await _require_head(request)
+    body = await request.json()
+    tid   = body.get('telegram_id')
+    level = body.get('level')
+    if not tid or level not in ('admin', 'head'):
+        return JSONResponse({"success": False, "error": "Неверные параметры"})
+    existing = await db.get_admin(int(tid))
+    username = existing['username'] if existing else None
+    await db.add_admin(int(tid), username, level, tg_user['id'])
+    return JSONResponse({"success": True})
+
+
+@app.post("/api/admin/admin/remove")
+async def api_admin_remove(request: Request):
+    tg_user, _ = await _require_head(request)
+    body = await request.json()
+    tid  = body.get('telegram_id')
+    if not tid:
+        return JSONResponse({"success": False, "error": "telegram_id обязателен"})
+    if int(tid) == tg_user['id']:
+        return JSONResponse({"success": False, "error": "Нельзя удалить самого себя"})
+    await db.remove_admin(int(tid))
+    return JSONResponse({"success": True})
