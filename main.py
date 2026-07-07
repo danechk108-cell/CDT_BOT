@@ -688,20 +688,23 @@ async def api_claim_prize(request: Request):
 
 @app.get("/api/leaders")
 async def api_leaders(request: Request):
-    users = await db.get_all_users()
-    # Возвращаем всех для клиентской сортировки (по балансу / по спинам)
-    result = []
-    for u in users[:100]:
-        spin_stats = await db.get_user_spin_stats(u['telegram_id'])
-        result.append({
+    users = await db.get_all_users_with_spin_stats()
+    result = [
+        {
             "telegram_id": u['telegram_id'],
             "username":    u['username'],
             "first_name":  u['first_name'],
             "balance":     float(u['balance']),
             "game_id":     u['game_id'],
             "is_blocked":  bool(u['is_blocked']),
-            "spin_stats":  spin_stats,
-        })
+            "spin_stats":  {
+                "total":   int(u['spin_total']),
+                "wins":    int(u['spin_wins']),
+                "biggest": float(u['spin_biggest']),
+            },
+        }
+        for u in users[:100]
+    ]
     return JSONResponse({"success": True, "leaders": result})
 
 @app.get("/health")

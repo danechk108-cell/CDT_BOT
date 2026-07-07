@@ -159,6 +159,26 @@ async def get_all_users():
     async with pool.acquire() as c:
         return await c.fetch("SELECT * FROM users ORDER BY created_at DESC")
 
+async def get_all_users_with_spin_stats():
+    """Returns all users with aggregated spin stats in a single query."""
+    async with pool.acquire() as c:
+        return await c.fetch("""
+            SELECT u.*,
+                   COALESCE(s.total,  0)   AS spin_total,
+                   COALESCE(s.wins,   0)   AS spin_wins,
+                   COALESCE(s.biggest, 0)  AS spin_biggest
+            FROM users u
+            LEFT JOIN (
+                SELECT user_id,
+                       COUNT(*)                                               AS total,
+                       COUNT(*) FILTER (WHERE prize_type != 'nothing')       AS wins,
+                       COALESCE(MAX(prize_value) FILTER (WHERE prize_type = 'balance'), 0) AS biggest
+                FROM roulette_spins
+                GROUP BY user_id
+            ) s ON s.user_id = u.telegram_id
+            ORDER BY u.balance DESC
+        """)
+
 
 # ── spins ──────────────────────────────────────────────────────────────────────
 
