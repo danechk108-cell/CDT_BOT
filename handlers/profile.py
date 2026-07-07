@@ -125,10 +125,11 @@ async def change_id_start(cb: CallbackQuery, state: FSMContext):
 
 @router.message(ProfState.new_game_id)
 async def save_new_id(msg: Message, state: FSMContext, bot: Bot):
+    import re as _re
     nid = msg.text.strip()
-    if len(nid) < 3:
+    if not _re.match(r'^\d{7,9}$', nid):
         return await msg.answer(
-            f'{em("warn")} Некорректный ID. Попробуйте снова:',
+            f'{em("warn")} Некорректный ID. Введите от 7 до 9 цифр:',
             parse_mode="HTML",
         )
     await db.update_game_id(msg.from_user.id, nid)

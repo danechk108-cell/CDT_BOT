@@ -72,10 +72,11 @@ async def cmd_start(msg: Message, state: FSMContext):
 
 @router.message(Reg.game_id)
 async def process_game_id(msg: Message, state: FSMContext):
+    import re as _re
     gid = msg.text.strip()
-    if len(gid) < 3:
+    if not _re.match(r'^\d{7,9}$', gid):
         return await msg.answer(
-            f'{em("warn")} <b>Некорректный ID!</b> Введите снова:',
+            f'{em("warn")} <b>Некорректный ID!</b> Введите от 7 до 9 цифр:',
             parse_mode="HTML",
         )
     await db.update_game_id(msg.from_user.id, gid)

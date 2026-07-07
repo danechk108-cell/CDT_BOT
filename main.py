@@ -204,8 +204,9 @@ async def api_set_game_id(request: Request):
     body    = await request.json()
     game_id = body.get('game_id', '').strip()
 
-    if len(game_id) < 3:
-        return JSONResponse({"success": False, "error": "Некорректный ID"})
+    import re
+    if not re.match(r'^\d{7,9}$', game_id):
+        return JSONResponse({"success": False, "error": "Game ID должен быть от 7 до 9 цифр"})
 
     user_id = tg_user['id']
     await db.update_game_id(user_id, game_id)
@@ -243,17 +244,10 @@ async def api_roulette_status(request: Request, type: str = "day", luck: int | N
 
     if type == 'all_or_nothing':
         user = await db.get_user(user_id)
-        last_spin     = await db.get_last_spin(user_id, type)
-        cooldown_secs = 0
-        if last_spin:
-            cooldown  = COOLDOWNS.get(type, 86400)
-            next_spin = last_spin['spun_at'] + timedelta(seconds=cooldown)
-            now       = datetime.now()
-            if now < next_spin:
-                cooldown_secs = int((next_spin - now).total_seconds())
+        # Cooldown removed — all_or_nothing is always available when balance >= 200
         return JSONResponse({
             "success": True,
-            "cooldown": cooldown_secs,
+            "cooldown": 0,
             "conditions_met": float(user['balance']) >= 200,
             "balance": float(user['balance']),
             "prizes": build_roulette_prizes("all_or_nothing_gold"),
@@ -731,6 +725,7 @@ async def api_ticket_categories(request: Request):
 
 @app.post("/api/support/create")
 async def api_create_ticket(request: Request):
+    import base64
     tg_user = await get_tg_user(request.headers.get('x-telegram-init-data'))
     if not tg_user:
         raise HTTPException(401, "Unauthorized")
@@ -739,6 +734,7 @@ async def api_create_ticket(request: Request):
     body    = await request.json()
     category = body.get('category', '').strip()
     message  = body.get('message', '').strip()
+    photo_b64 = body.get('photo')  # optional base64 data URL
 
     if not category or category not in TICKET_CATEGORIES:
         return JSONResponse({"success": False, "error": "Выберите категорию"})
@@ -750,8 +746,20 @@ async def api_create_ticket(request: Request):
     ticket = await db.create_ticket(user_id, category, message)
     user   = await db.get_user(user_id)
 
+    # Декодируем фото если есть
+    photo_bytes = None
+    if photo_b64:
+        try:
+            # Убираем data URL prefix (data:image/jpeg;base64,...)
+            if ',' in photo_b64:
+                photo_b64 = photo_b64.split(',', 1)[1]
+            photo_bytes = base64.b64decode(photo_b64)
+        except Exception:
+            photo_bytes = None
+
     # Уведомляем всех администраторов
     from config import em
+    from aiogram.types import BufferedInputFile
     who = f"@{user['username']}" if user and user.get('username') else str(user_id)
     admin_txt = (
         f"{em('bell')} <b>Новый тикет поддержки #{ticket['id']}</b>\n\n"
@@ -762,6 +770,12 @@ async def api_create_ticket(request: Request):
     for admin_rec in await db.get_all_admins():
         try:
             await bot.send_message(admin_rec['telegram_id'], admin_txt, parse_mode="HTML")
+            if photo_bytes:
+                await bot.send_photo(
+                    admin_rec['telegram_id'],
+                    photo=BufferedInputFile(photo_bytes, filename="ticket_photo.jpg"),
+                    caption=f"📷 Фото к тикету #{ticket['id']}",
+                )
         except Exception:
             pass
 
