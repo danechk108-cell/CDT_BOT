@@ -188,79 +188,94 @@ html,body{
 .page::-webkit-scrollbar-thumb{background:rgba(124,94,249,.3);border-radius:2px}
 
 /* ══════════════════════════════════════════════════
-   NAVBAR — FLOATING PILL
+   NAVBAR — BLUE GLASS PILL (Figma)
 ══════════════════════════════════════════════════ */
 #navbar{
   flex-shrink:0;
-  background:rgba(9,11,26,.88);
-  backdrop-filter:blur(24px) saturate(1.6);
-  -webkit-backdrop-filter:blur(24px) saturate(1.6);
-  border-top:1px solid rgba(255,255,255,.07);
-  padding:8px 8px calc(8px + env(safe-area-inset-bottom,0));
+  padding:8px 12px calc(8px + env(safe-area-inset-bottom,0));
   display:flex;align-items:center;justify-content:space-around;
   position:relative;
+  background:transparent;
 }
-#navbar::before{
+/* Pill container */
+#navbar-pill{
+  display:flex;align-items:center;justify-content:space-around;
+  width:100%;
+  background:rgba(0,34,255,0.07);
+  border-radius:16px;
+  border:1px solid rgba(0,100,255,.13);
+  backdrop-filter:blur(24px) saturate(1.6);
+  -webkit-backdrop-filter:blur(24px) saturate(1.6);
+  padding:4px 4px;
+  position:relative;
+  box-shadow:0 4px 32px rgba(0,34,255,.12), inset 0 1px 0 rgba(255,255,255,.06);
+}
+#navbar-pill::before{
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg, transparent, rgba(124,94,249,.3), rgba(190,116,255,.3), transparent);
+  background:linear-gradient(90deg, transparent, rgba(0,120,255,.35), rgba(80,160,255,.35), transparent);
+  border-radius:16px 16px 0 0;
 }
 
 .nav-item{
   display:flex;flex-direction:column;align-items:center;gap:3px;
-  cursor:pointer;color:var(--muted2);
-  font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
-  padding:6px 10px;border-radius:14px;
-  transition:color .2s,background .25s;
+  cursor:pointer;color:rgba(255,255,255,.38);
+  font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:8px 10px;border-radius:12px;
+  transition:color .2s,background .2s;
   border:none;background:none;font-family:'Space Grotesk',sans-serif;
   position:relative;flex:1;
 }
 .nav-item svg{
-  width:20px;height:20px;stroke:currentColor;fill:none;
-  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+  width:22px;height:22px;stroke:currentColor;fill:none;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
   transition:stroke .2s, transform .2s, filter .2s;
 }
-.nav-item.active{color:var(--iris3);background:rgba(124,94,249,.1)}
+.nav-item.active{
+  color:#60a5fa;
+  background:rgba(0,100,255,.12);
+}
 .nav-item.active svg{
-  stroke:var(--iris3);
-  filter:drop-shadow(0 0 6px rgba(124,94,249,.7));
-  transform:scale(1.08) translateY(-1px);
+  stroke:#60a5fa;
+  filter:drop-shadow(0 0 7px rgba(60,130,255,.75));
+  transform:scale(1.1) translateY(-1px);
 }
 
 /* ROULETTE CENTER BUTTON */
 .nav-spin{
   flex:0 0 auto;
   display:flex;flex-direction:column;align-items:center;gap:3px;
-  cursor:pointer;color:var(--text2);
-  font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  cursor:pointer;color:rgba(255,255,255,.5);
+  font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
   border:none;background:none;font-family:'Space Grotesk',sans-serif;
   position:relative;
 }
 .nav-spin-disc{
-  width:54px;height:54px;
-  background:linear-gradient(135deg,var(--iris),var(--plasma));
-  border-radius:18px;
+  width:50px;height:50px;
+  background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+  border-radius:16px;
   display:flex;align-items:center;justify-content:center;
   animation:spinPulse 3s ease-in-out infinite;
-  margin-top:-18px;
+  margin-top:-16px;
   transition:transform .15s;
-  box-shadow:var(--shadow-iris);
+  box-shadow:0 6px 28px rgba(59,130,246,.5);
   position:relative;overflow:hidden;
+  border:1px solid rgba(147,197,253,.25);
 }
 .nav-spin-disc::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.2),transparent 60%);
-  border-radius:18px;
+  background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 55%);
+  border-radius:16px;
 }
-.nav-spin-disc svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;position:relative;z-index:1}
+.nav-spin-disc svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;position:relative;z-index:1}
 .nav-spin-disc:active{transform:scale(.91)}
 .nav-spin.active .nav-spin-disc{
-  background:linear-gradient(135deg,var(--plasma),var(--iris));
-  box-shadow:0 8px 48px rgba(190,116,255,.55);
+  background:linear-gradient(135deg,#2563eb,#60a5fa);
+  box-shadow:0 8px 36px rgba(96,165,250,.6);
 }
 
 @keyframes spinPulse{
-  0%,100%{box-shadow:var(--shadow-iris)}
-  50%{box-shadow:0 8px 52px rgba(124,94,249,.65), 0 0 0 8px rgba(124,94,249,.08)}
+  0%,100%{box-shadow:0 6px 28px rgba(59,130,246,.5)}
+  50%{box-shadow:0 8px 40px rgba(59,130,246,.75), 0 0 0 6px rgba(59,130,246,.1)}
 }
 
 /* ══════════════════════════════════════════════════
@@ -597,10 +612,27 @@ html,body{
 ══════════════════════════════════════════════════ */
 #page-leaders{padding-top:16px}
 .ldrs-header{
-  padding:0 16px 14px;
+  padding:0 16px 10px;
   font-family:'Space Grotesk',sans-serif;
   font-size:10px;font-weight:700;color:var(--muted3);
   text-transform:uppercase;letter-spacing:2px;
+}
+/* Tab switcher */
+.ldr-tabs{
+  display:flex;gap:6px;padding:0 16px 12px;
+}
+.ldr-tab{
+  flex:1;padding:8px 10px;border-radius:12px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  background:var(--glass);border:1px solid var(--border2);
+  color:var(--muted2);cursor:pointer;text-align:center;
+  transition:background .2s,border-color .2s,color .2s;
+}
+.ldr-tab.active{
+  background:rgba(59,130,246,.12);
+  border-color:rgba(59,130,246,.35);
+  color:#60a5fa;
 }
 .ldrs-list{padding:0 16px}
 
@@ -626,6 +658,15 @@ html,body{
   content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
   background:linear-gradient(180deg,var(--iris),var(--plasma));
   border-radius:3px 0 0 3px;
+}
+/* Blocked strikethrough */
+.ldr-card.blocked{opacity:.55}
+.ldr-card.blocked .ldr-name{text-decoration:line-through;text-decoration-color:var(--red);}
+.ldr-blocked-tag{
+  font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--red);background:rgba(255,64,96,.1);border:1px solid rgba(255,64,96,.2);
+  padding:1px 5px;border-radius:4px;font-family:'Space Grotesk',sans-serif;
+  margin-left:4px;vertical-align:middle;
 }
 .ldr-rank{
   font-family:'Syne',sans-serif;
@@ -653,6 +694,10 @@ html,body{
   font-family:'Syne',sans-serif;
   font-size:15px;font-weight:800;color:var(--nova);flex-shrink:0;
   text-shadow:0 0 20px rgba(247,203,69,.3);
+}
+.ldr-spins{
+  font-family:'Syne',sans-serif;
+  font-size:15px;font-weight:800;color:var(--iris3);flex-shrink:0;
 }
 
 /* ══════════════════════════════════════════════════
@@ -1385,9 +1430,21 @@ html,body{
 .es-text{font-size:15px;font-weight:700;color:var(--muted2);margin-bottom:5px;font-family:'Space Grotesk',sans-serif}
 .es-sub{font-size:12px;color:var(--muted);font-family:'Space Grotesk',sans-serif}
 
-/* BLOCKED */
-.blocked-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:40px}
-.blocked-wrap svg{width:64px;height:64px;stroke:var(--red);stroke-width:1.2;fill:none;margin-bottom:20px}
+/* BLOCKED SCREEN */
+.blocked-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:40px;gap:0}
+.blocked-icon{width:80px;height:80px;border-radius:50%;background:rgba(255,64,96,.1);border:1px solid rgba(255,64,96,.25);display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 0 40px rgba(255,64,96,.15)}
+.blocked-icon svg{width:36px;height:36px;stroke:var(--red);stroke-width:1.5;fill:none}
+.blocked-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--red);margin-bottom:10px}
+.blocked-sub{font-size:13px;color:var(--muted3);font-family:'Space Grotesk',sans-serif;line-height:1.6;margin-bottom:28px;max-width:280px}
+/* AUTO-SPIN badge */
+.autospin-bar{
+  margin-top:10px;padding:10px 14px;
+  background:rgba(124,94,249,.07);border:1px solid rgba(124,94,249,.18);
+  border-radius:12px;
+  font-family:'Space Grotesk',sans-serif;font-size:12px;color:var(--text2);
+  display:flex;align-items:center;gap:8px;justify-content:space-between;
+}
+.autospin-bar strong{color:var(--iris3)}
 
 /* ══════════════════════════════════════════════════
    CONFETTI PARTICLES
@@ -1508,6 +1565,16 @@ html,body{
   <!-- LEADERS -->
   <div class="page" id="page-leaders">
     <div class="ldrs-header">Таблица лидеров</div>
+    <div class="ldr-tabs">
+      <div class="ldr-tab active" id="ldr-tab-balance" onclick="switchLdrTab('balance')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><path d="M15 8.5H12.5C11.1 8.5 10 9.6 10 11s1.1 2.5 2.5 2.5H13c1.4 0 2.5 1.1 2.5 2.5S14.4 18.5 13 18.5H10"/><line x1="12" y1="7" x2="12" y2="20"/></svg>
+        По балансу
+      </div>
+      <div class="ldr-tab" id="ldr-tab-spins" onclick="switchLdrTab('spins')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.64A9 9 0 0 0 20.49 15"/></svg>
+        По спинам
+      </div>
+    </div>
     <div class="ldrs-list" id="ldrs-list">
       <div class="loading-state"><div class="ld-spin"></div> Загрузка...</div>
     </div>
@@ -1565,11 +1632,11 @@ html,body{
         </div>
         <div class="pm-row" onclick="showPage('support')">
           <div class="pm-icon" style="background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </div>
           <div class="pm-texts">
-            <div class="pm-label">Поддержка</div>
-            <div class="pm-val">Создать тикет</div>
+            <div class="pm-label">Мои тикеты</div>
+            <div class="pm-val" id="pm-tickets-val">История обращений</div>
           </div>
           <div class="pm-chevron"><svg viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"/></svg></div>
         </div>
@@ -1596,17 +1663,10 @@ html,body{
     </div>
   </div>
 
-  <!-- SUPPORT -->
+  <!-- SUPPORT — только "Мои тикеты" (создание тикета — в Помощь) -->
   <div class="page" id="page-support">
-    <div class="rt-header">Поддержка</div>
+    <div class="rt-header">Мои тикеты</div>
     <div style="padding:0 16px">
-      <div class="section-hdr" style="margin-bottom:12px">
-        <div class="section-title">
-          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          МОИ ТИКЕТЫ
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="openNewTicket()">+ Создать</button>
-      </div>
       <div id="tickets-list"><div class="loading-state"><div class="ld-spin"></div> Загрузка...</div></div>
     </div>
   </div>
@@ -1623,29 +1683,35 @@ html,body{
 
 <!-- ══ NAVBAR ══ -->
 <div id="navbar">
+<div id="navbar-pill">
   <button class="nav-item active" id="nav-info" onclick="showPage('info')">
-    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+    <!-- Tabler: home -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12H3l9-9 9 9h-2"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/><rect x="9" y="17" width="6" height="4" rx="1"/></svg>
     ИНФО
   </button>
-  <button class="nav-item" id="nav-help" onclick="openHelp()">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  <button class="nav-item" id="nav-help" onclick="showPage('support');openHelpSupport()">
+    <!-- Tabler: message-question -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9h8"/><path d="M8 13h6"/><path d="M14 18l-2 3-2-3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4"/><path d="M19 22v.01"/><path d="M19 19a2 2 0 0 0 .914-3.782 1.98 1.98 0 0 0-2.414.483"/></svg>
     ПОМОЩЬ
   </button>
   <button class="nav-spin" id="nav-roulette" onclick="showPage('roulette')">
     <div class="nav-spin-disc" id="nav-disc">
-      <!-- Roulette/compass icon -->
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="rgba(255,255,255,.15)" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="rgba(255,255,255,.9)"/></svg>
+      <!-- Tabler: dice -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1" fill="#fff" stroke="none"/><circle cx="15.5" cy="8.5" r="1" fill="#fff" stroke="none"/><circle cx="8.5" cy="15.5" r="1" fill="#fff" stroke="none"/><circle cx="15.5" cy="15.5" r="1" fill="#fff" stroke="none"/><circle cx="12" cy="12" r="1" fill="#fff" stroke="none"/></svg>
     </div>
     РУЛЕТКА
   </button>
   <button class="nav-item" id="nav-leaders" onclick="showPage('leaders')">
-    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <!-- Tabler: trophy -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v6a5 5 0 0 1-10 0z"/><path d="M5 9H4a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1h4"/><path d="M19 9h1a2 2 0 0 0 2-2V6a1 1 0 0 0-1-1h-4"/></svg>
     ЛИДЕРЫ
   </button>
   <button class="nav-item" id="nav-profile" onclick="showPage('profile')">
-    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <!-- Tabler: user-circle -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.168 18.849A4 4 0 0 1 10 16h4a4 4 0 0 1 3.834 2.855"/></svg>
     ПРОФИЛЬ
   </button>
+</div>
 </div>
 </div><!-- /app -->
 
@@ -1792,6 +1858,7 @@ async function loadUser(){
     user=d.user;
     applyUser();
     loadPrizes();
+    startBalancePoll();
   }catch(e){console.error(e);}
 }
 
@@ -1845,6 +1912,21 @@ async function loadPrizes(){
     prizes=(d.prizes||[]).filter(p=>p.prize_type!=='nothing');
     renderPrizes();
   }catch(e){}
+}
+
+/* ─── Автообновление баланса каждые 30с ─── */
+let _balPollTimer=null;
+function startBalancePoll(){
+  if(_balPollTimer)return;
+  _balPollTimer=setInterval(async()=>{
+    try{
+      const d=await GET('/api/user/me');
+      if(d.success&&d.user&&user){
+        const nb=d.user.balance;
+        if(Math.abs(nb-user.balance)>0.001){user.balance=nb;renderUserBal();}
+      }
+    }catch(e){}
+  },30000);
 }
 
 function renderPrizes(){
@@ -1927,7 +2009,9 @@ function _rtBadge(type){
     badge=ok?'Доступна':'Нет средств';
     bc=ok?'sb-ready':'sb-wait';
   }else if(type==='all_or_nothing'){
-    if(st.conditions_met){badge='Доступна';bc='sb-ready';}
+    // кулдаун убран — только проверяем баланс
+    const bal=st.balance??user?.balance??0;
+    if(bal>=200){badge='Доступна';bc='sb-ready';}
     else{badge='Нет средств';bc='sb-wait';}
   }else{
     if(st.cooldown>0){badge=fmtTime(st.cooldown);bc='sb-wait';}
@@ -1999,7 +2083,7 @@ async function openRtModal(type){
         RT_SVGS.aon);
       return;
     }
-    // Баланс есть — выбор приза
+    // Кулдаун для all_or_nothing убран — доступно сразу при наличии баланса
     const aonBody=`
       <p class="modal-info">💰 Баланс: <strong>${bal.toFixed(2)}₽</strong> · Стоимость: <strong style="color:var(--nova)">200₽</strong></p>
       <p class="modal-info" style="margin-top:4px">Выберите, что хотите выиграть:</p>
@@ -2466,6 +2550,17 @@ function showPrize(d,type){
     again.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;stroke:currentColor"><circle cx="12" cy="12" r="10"/><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="rgba(255,255,255,.15)"/></svg>Крутить ещё раз`;
     again.onclick=()=>{closePrize();openPaidModal();};
     acts.appendChild(again);
+
+    // Автопрокрут до конца баланса
+    const price=PAID_PRICES[paidChoice.luck]||50;
+    const maxSpins=Math.floor((user?.balance||0)/price);
+    if(maxSpins>=1){
+      const autoDiv=document.createElement('div');
+      autoDiv.className='autospin-bar';
+      autoDiv.innerHTML=`<span>Авто: ещё <strong>${maxSpins}×</strong> по ${price}₽</span>
+        <button class="btn btn-primary btn-sm" id="autospin-btn" style="flex-shrink:0;padding:7px 14px" onclick="doAutoSpin(${maxSpins})">Запустить</button>`;
+      acts.appendChild(autoDiv);
+    }
   }
 
   const close=document.createElement('button');
@@ -2481,6 +2576,25 @@ function showPrize(d,type){
 function closePrize(){
   document.getElementById('prize-overlay').classList.remove('on');
   document.getElementById('confetti-field').innerHTML='';
+}
+
+/* Автопрокрут до конца баланса */
+let _autoSpinRunning=false;
+async function doAutoSpin(count){
+  if(_autoSpinRunning)return;
+  _autoSpinRunning=true;
+  closePrize();
+  const price=PAID_PRICES[paidChoice.luck]||50;
+  let spun=0;
+  for(let i=0;i<count;i++){
+    if(!user||user.balance<price)break;
+    await doSpin('paid');
+    spun++;
+    // небольшая пауза между спинами
+    await sleep(600);
+  }
+  _autoSpinRunning=false;
+  if(spun>0)toast(`Автопрокрут завершён: ${spun}×`);
 }
 
 /* ══ ROULETTE WHEEL SVG BUILDER ══ */
@@ -2626,6 +2740,55 @@ async function confirmTransfer(prizeId){
 /* ═══════════════════════════════════════════════════════
    LEADERS
 ═══════════════════════════════════════════════════════ */
+let _ldrTab='balance'; // 'balance' | 'spins'
+let _ldrData=null;
+
+function switchLdrTab(tab){
+  _ldrTab=tab;
+  document.querySelectorAll('.ldr-tab').forEach(b=>b.classList.remove('active'));
+  const tabEl=document.getElementById('ldr-tab-'+tab);
+  if(tabEl)tabEl.classList.add('active');
+  if(_ldrData)_renderLeaders(_ldrData);
+}
+
+function _renderLeaders(data){
+  const el=document.getElementById('ldrs-list');
+  const isSpins=_ldrTab==='spins';
+  // сортировка
+  const sorted=[...data].sort((a,b)=>isSpins
+    ?(b.spin_stats?.total||0)-(a.spin_stats?.total||0)
+    :b.balance-a.balance
+  ).slice(0,10);
+  if(!sorted.length){
+    el.innerHTML='<div class="empty-state"><div class="es-text">Пока нет данных</div></div>';return;
+  }
+  el.innerHTML=sorted.map((u,i)=>{
+    const name=u.first_name||(u.username?'@'+u.username:'Игрок');
+    const init=name[0].toUpperCase();
+    const isMe=user&&u.telegram_id===user.telegram_id;
+    const isBlocked=u.is_blocked;
+    let rankHtml;
+    if(i<3){
+      rankHtml=`<div class="ldr-rank ${i===0?'r1':i===1?'r2':'r3'}">${RANK_SVGS[i]}</div>`;
+    }else{
+      rankHtml=`<div class="ldr-rank"><span class="rn">#${i+1}</span></div>`;
+    }
+    const blockedTag=isBlocked?`<span class="ldr-blocked-tag">блок</span>`:'';
+    const valHtml=isSpins
+      ?`<div class="ldr-spins">${u.spin_stats?.total||0} сп.</div>`
+      :`<div class="ldr-bal">${u.balance.toFixed(2)}₽</div>`;
+    return `<div class="ldr-card${isMe?' me':''}${isBlocked?' blocked':''}" style="animation-delay:${i*50}ms">
+      ${rankHtml}
+      <div class="ldr-av">${init}</div>
+      <div class="ldr-body">
+        <div class="ldr-name">${name}${blockedTag}${isMe?' <span style="color:var(--iris3);font-size:11px;font-weight:700">(Вы)</span>':''}</div>
+        <div class="ldr-id">${GAME_ICON_SVG}${u.game_id||'—'}</div>
+      </div>
+      ${valHtml}
+    </div>`;
+  }).join('');
+}
+
 async function loadLeaders(){
   const el=document.getElementById('ldrs-list');
   el.innerHTML='<div class="loading-state"><div class="ld-spin"></div> Загрузка...</div>';
@@ -2635,26 +2798,8 @@ async function loadLeaders(){
       el.innerHTML='<div class="empty-state"><div class="es-text">Пока нет данных</div></div>';
       return;
     }
-    el.innerHTML=d.leaders.map((u,i)=>{
-      const name=u.first_name||(u.username?'@'+u.username:'Игрок');
-      const init=name[0].toUpperCase();
-      const isMe=user&&u.telegram_id===user.telegram_id;
-      let rankHtml;
-      if(i<3){
-        rankHtml=`<div class="ldr-rank ${i===0?'r1':i===1?'r2':'r3'}">${RANK_SVGS[i]}</div>`;
-      }else{
-        rankHtml=`<div class="ldr-rank"><span class="rn">#${i+1}</span></div>`;
-      }
-      return `<div class="ldr-card${isMe?' me':''}" style="animation-delay:${i*50}ms">
-        ${rankHtml}
-        <div class="ldr-av">${init}</div>
-        <div class="ldr-body">
-          <div class="ldr-name">${name}${isMe?' <span style="color:var(--iris3);font-size:11px;font-weight:700">(Вы)</span>':''}</div>
-          <div class="ldr-id">${GAME_ICON_SVG}${u.game_id?u.game_id:'ID: '+u.telegram_id}</div>
-        </div>
-        <div class="ldr-bal">${u.balance.toFixed(2)}₽</div>
-      </div>`;
-    }).join('');
+    _ldrData=d.leaders;
+    _renderLeaders(_ldrData);
   }catch(e){el.innerHTML='<div class="empty-state"><div class="es-text">Ошибка загрузки</div></div>';}
 }
 
@@ -2663,17 +2808,24 @@ async function loadLeaders(){
 ═══════════════════════════════════════════════════════ */
 function openEditId(){
   showModal('Game ID',
-    `<p class="modal-info">Текущий ID: <strong>${user?.game_id||'Не указан'}</strong></p>
-     <input class="modal-input" id="gid-inp" placeholder="Введите Game ID..." maxlength="30" value="${user?.game_id||''}">`,
+    `<p class="modal-info">Введите ID из игры Tank Blitz (только цифры, 7–9 символов).</p>
+     <p class="modal-info" style="color:var(--muted3)">Текущий: <strong style="color:var(--text)">${user?.game_id||'Не указан'}</strong></p>
+     <input class="modal-input" id="gid-inp" placeholder="Например: 1234567" maxlength="9" inputmode="numeric" pattern="[0-9]*" value="${user?.game_id||''}">`,
     [{l:'Сохранить',a:'saveId()',c:'btn-primary',
       icon:`<svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><polyline points="20,6 9,17 4,12"/></svg>`},
      {l:'Отмена',a:'closeModal()',c:'btn-secondary'}],
-    `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`);
-  setTimeout(()=>document.getElementById('gid-inp')?.focus(),80);
+    `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4"/><circle cx="15" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg>`);
+  setTimeout(()=>{
+    const inp=document.getElementById('gid-inp');
+    if(inp){
+      inp.focus();
+      inp.addEventListener('input',()=>{inp.value=inp.value.replace(/\D/g,'').slice(0,9);});
+    }
+  },80);
 }
 async function saveId(){
   const v=document.getElementById('gid-inp')?.value?.trim()||'';
-  if(v.length<3){toast('Минимум 3 символа','err');return;}
+  if(!/^\d{7,9}$/.test(v)){toast('ID: только цифры, 7–9 символов','err');return;}
   try{
     const d=await POST('/api/user/set-game-id',{game_id:v});
     if(d.success){user.game_id=v;applyUser();closeModal();toast('Game ID обновлён');}
@@ -2720,12 +2872,18 @@ async function confirmClaim(id){
   }catch(e){toast('Ошибка соединения','err');}
 }
 
-function openHelp(){
+/* openHelp открывает модалку FAQ + кнопку создать тикет */
+function openHelp(){}// не используется, заменён на openHelpSupport
+
+function openHelpSupport(){
+  // Открываем страницу support + показываем модалку с FAQ и возможностью создать тикет
   showModal('Помощь',
     `<p class="modal-info"><strong style="color:var(--text)">Как работает рулетка?</strong><br>Выберите тип, выполните условия — подпишитесь на каналы и перешлите сообщение 3 друзьям.</p>
      <p class="modal-info"><strong style="color:var(--text)">Что с призом?</strong><br>Баланс зачисляется сразу. Аккаунты и голду нажмите «Забрать» в разделе Инфо.</p>
      <p class="modal-info"><strong style="color:var(--text)">Вопросы?</strong><br><a href="https://t.me/CodeTMG">@CodeTMG</a></p>`,
-    [{l:'Понятно',a:'closeModal()',c:'btn-primary btn-full'}],
+    [{l:'Создать тикет',a:'closeModal();openNewTicket()',c:'btn-primary',
+       icon:`<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`},
+     {l:'Закрыть',a:'closeModal()',c:'btn-secondary'}],
     `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`);
 }
 
@@ -3332,10 +3490,32 @@ function fmtTime(s){
 function showBlocked(){
   document.getElementById('app').innerHTML=`
     <div class="blocked-wrap">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8px">Доступ закрыт</div>
-      <div style="color:var(--muted2);font-size:13px;font-family:'Space Grotesk',sans-serif">Вы заблокированы. Обратитесь в поддержку.</div>
+      <div class="blocked-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <div class="blocked-title">Доступ закрыт</div>
+      <div class="blocked-sub">Ваш аккаунт заблокирован администратором. Если считаете это ошибкой — создайте тикет в поддержку.</div>
+      <button class="btn btn-primary" style="gap:8px" onclick="showBlockedTicket()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke:#fff"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Обратиться в поддержку
+      </button>
     </div>`;
+}
+
+function showBlockedTicket(){
+  // восстановим app чтобы модалка работала
+  document.getElementById('app')?.remove();
+  const app=document.createElement('div');app.id='app';
+  app.style.cssText='position:relative;z-index:1;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;';
+  document.body.appendChild(app);
+  app.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px;text-align:center;gap:0">
+    <div class="blocked-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+    <div class="blocked-title">Доступ закрыт</div>
+    <div class="blocked-sub">Создайте тикет — администратор рассмотрит вашу ситуацию.</div>
+  </div>
+  <div id="modal-bg" onclick="closeBg(event)"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title" id="modal-title"></div><div id="modal-body"></div><div class="modal-footer" id="modal-footer"></div></div></div>
+  <div id="toast"><svg id="toast-icon" viewBox="0 0 24 24"></svg><span id="toast-text"></span></div>`;
+  setTimeout(openNewTicket,100);
 }
 
 /* Cooldown countdown updater — только текст, без пересборки DOM */

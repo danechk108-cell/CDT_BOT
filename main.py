@@ -346,12 +346,7 @@ async def api_spin(request: Request):
     total_price   = 0
 
     if roulette_type == 'all_or_nothing':
-        last_spin = await db.get_last_spin(user_id, roulette_type)
-        if last_spin:
-            cooldown  = COOLDOWNS.get(roulette_type, 86400)
-            next_spin = last_spin['spun_at'] + timedelta(seconds=cooldown)
-            if datetime.now() < next_spin:
-                return JSONResponse({"success": False, "error": "Кулдаун не прошёл"})
+        # Кулдаун для all_or_nothing убран по запросу
         if float(user['balance']) < 200:
             return JSONResponse({"success": False, "error": "Недостаточно средств. Нужно 200₽"})
         await db.update_balance(user_id, -200)
@@ -693,18 +688,20 @@ async def api_claim_prize(request: Request):
 
 @app.get("/api/leaders")
 async def api_leaders(request: Request):
-    users       = await db.get_all_users()
-    sorted_users = sorted(users, key=lambda u: u['balance'], reverse=True)[:10]
-    result = [
-        {
+    users = await db.get_all_users()
+    # Возвращаем всех для клиентской сортировки (по балансу / по спинам)
+    result = []
+    for u in users[:100]:
+        spin_stats = await db.get_user_spin_stats(u['telegram_id'])
+        result.append({
             "telegram_id": u['telegram_id'],
             "username":    u['username'],
             "first_name":  u['first_name'],
             "balance":     float(u['balance']),
             "game_id":     u['game_id'],
-        }
-        for u in sorted_users
-    ]
+            "is_blocked":  bool(u['is_blocked']),
+            "spin_stats":  spin_stats,
+        })
     return JSONResponse({"success": True, "leaders": result})
 
 @app.get("/health")
